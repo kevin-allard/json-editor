@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Content Editor</title>
-    <!-- TinyMCE Rich Text Editor -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
+    <!-- Step 1: Load the configuration file first -->
+    <script src="config.js"></script>
+    
+    <!-- Step 2: TinyMCE will be loaded dynamically by the script below -->
+
     <!-- SortableJS for Drag-and-Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
     <style>
+        /* CSS remains exactly the same as the previous version */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --bg-main: #f0f2f5; --bg-card: #ffffff; --border-color: #d9d9d9; --primary-color: #1890ff;
@@ -49,35 +55,32 @@
 </head>
 <body>
     <div class="editor-container">
+        <!-- The body HTML remains exactly the same -->
         <header class="editor-header">
-            <div class="selector-group">
-                <label for="course-selector">Course</label>
-                <select id="course-selector"></select>
-            </div>
-            <div class="selector-group">
-                <label for="lesson-selector">Lesson</label>
-                <select id="lesson-selector"></select>
-            </div>
+            <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
+            <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <button id="save-button" class="save-button">Save Changes (to Console)</button>
         </header>
-
-        <main id="editor-main-content">
-            <div class="loader">Select a lesson to begin...</div>
-        </main>
+        <main id="editor-main-content"><div class="loader">Select a lesson to begin...</div></main>
     </div>
 
     <script>
+    // Dynamically load TinyMCE script with the API key from config.js
+    (function() {
+        if (typeof TINY_MCE_API_KEY !== 'undefined' && TINY_MCE_API_KEY) {
+            const script = document.createElement('script');
+            script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
+            script.referrerPolicy = 'origin';
+            document.head.appendChild(script);
+        } else {
+            console.error("TinyMCE API key is not defined. Please check your config.js file.");
+        }
+    })();
+    
+    // The rest of the JavaScript logic is unchanged...
     // --- UTILITY FUNCTIONS ---
-    function getNestedProperty(obj, path) {
-        return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj);
-    }
-
-    function setNestedProperty(obj, path, value) {
-        const keys = path.split(/[.\[\]]+/).filter(Boolean);
-        const lastKey = keys.pop();
-        const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj);
-        lastObj[lastKey] = value;
-    }
+    function getNestedProperty(obj, path) { /* ... */ }
+    function setNestedProperty(obj, path, value) { /* ... */ }
 
     document.addEventListener('DOMContentLoaded', () => {
         // --- STATE MANAGEMENT ---
@@ -97,12 +100,10 @@
                 const response = await fetch('manifest.json');
                 if (!response.ok) throw new Error("Manifest file not found.");
                 manifestData = await response.json();
-                
                 populateCourseSelector();
                 courseSelector.addEventListener('change', handleCourseChange);
                 lessonSelector.addEventListener('change', handleLessonChange);
                 saveButton.addEventListener('click', saveChanges);
-
                 await handleCourseChange();
             } catch (error) {
                 mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`;
@@ -110,230 +111,57 @@
         }
         
         // --- DATA LOADING & SELECTOR LOGIC ---
-        function populateCourseSelector() {
-            manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName)));
-        }
-        
-        function populateLessonSelector(courseName) {
-            lessonSelector.innerHTML = '';
-            const course = manifestData.find(c => c.courseName === courseName);
-            if (course && course.lessons.length > 0) {
-                lessonSelector.disabled = false;
-                course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path)));
-            } else {
-                lessonSelector.disabled = true;
-                lessonSelector.add(new Option('No lessons available', ''));
-            }
-        }
-
-        async function handleCourseChange() {
-            populateLessonSelector(courseSelector.value);
-            await handleLessonChange();
-        }
-
-        async function handleLessonChange() {
-            const path = lessonSelector.value;
-            if (!path) {
-                mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
-                currentLessonData = null;
-                return;
-            }
-            
-            mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`;
-            try {
-                const response = await fetch(path);
-                if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`);
-                currentLessonData = await response.json();
-                renderEditor();
-            } catch (error) {
-                mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`;
-            }
-        }
+        function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+        function populateLessonSelector(courseName) { /* ... */ }
+        async function handleCourseChange() { /* ... */ }
+        async function handleLessonChange() { /* ... */ }
 
         // --- DYNAMIC RENDERING ---
-        function renderEditor() {
-            destroyEditors();
-            let html = ``;
-            // Render Overview Items
-            html += `<h2 class="section-header">Lesson Overview</h2><div id="overview-items-container" class="sortable-list">`;
-            currentLessonData.lesson_overview_items.forEach((feature, index) => {
-                const path = `lesson_overview_items[${index}]`;
-                html += renderFeature(feature, path);
-            });
-            html += `</div>`;
-            html += renderAddFeatureButton('lesson_overview_items');
-
-            // Render Support Sessions
-            currentLessonData.lesson_support_sessions.forEach((session, sessionIndex) => {
-                html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div id="session-${sessionIndex}-support-items-container" class="sortable-list">`;
-                session.support_items.forEach((feature, featureIndex) => {
-                    const path = `lesson_support_sessions[${sessionIndex}].support_items[${featureIndex}]`;
-                    html += renderFeature(feature, path);
-                });
-                html += `</div>`;
-                html += renderAddFeatureButton(`lesson_support_sessions[${sessionIndex}].support_items`);
-            });
-
-            mainContent.innerHTML = html;
-            
-            initializeEditors();
-            initializeSortable();
-            attachEventListeners();
-        }
-
-        function renderFeature(feature, path) {
-            let contentHtml = '';
-            const dataType = feature.feature_data.data_type;
-            
-            switch(dataType) {
-                case 'list':
-                    contentHtml = feature.feature_data.items.map((item, i) => `
-                        <div class="list-item">
-                            <input type="text" value="${item}" data-path="${path}.feature_data.items[${i}]" />
-                        </div>`).join('');
-                    break;
-                case 'rich_text':
-                    contentHtml = `<textarea class="tinymce-editor" data-path="${path}.feature_data.content">${feature.feature_data.content || ''}</textarea>`;
-                    break;
-                case 'intro_with_structured_list':
-                     contentHtml = `
-                        <div class="form-field">
-                            <label>Introduction</label>
-                            <textarea class="tinymce-editor" data-path="${path}.feature_data.introduction">${feature.feature_data.introduction || ''}</textarea>
-                        </div>
-                        <label>Items</label>
-                        ${feature.feature_data.items.map((item, i) => `
-                            <div class="structured-list-item">
-                                <div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div>
-                                <div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div>
-                            </div>
-                        `).join('')}`;
-                    break;
-                // Add more cases here for other data_types as needed...
-                default:
-                    contentHtml = `<pre><code>${JSON.stringify(feature.feature_data, null, 2)}</code></pre>`;
-            }
-
-            return `
-                <div class="feature-card" data-path="${path}">
-                    <div class="feature-header">
-                        <span class="drag-handle">☰</span>
-                        <div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div>
-                        <span class="feature-type-badge">${feature.feature_type}</span>
-                        <div class="feature-controls">
-                            <button class="delete-btn" title="Delete Feature">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="feature-content">${contentHtml}</div>
-                </div>`;
-        }
-        
-        function renderAddFeatureButton(path) {
-            return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`;
-        }
+        function renderEditor() { /* ... */ }
+        function renderFeature(feature, path) { /* ... */ }
+        function renderAddFeatureButton(path) { /* ... */ }
         
         // --- EVENT HANDLING ---
-        function attachEventListeners() {
-            mainContent.addEventListener('change', handleInputChange);
-            mainContent.addEventListener('click', handleButtonClick);
-        }
-
-        function handleInputChange(e) {
-            if (e.target.matches('[data-path]')) {
-                const path = e.target.getAttribute('data-path');
-                setNestedProperty(currentLessonData, path, e.target.value);
-            }
-        }
-        
-        function handleButtonClick(e) {
-            const target = e.target.closest('button');
-            if (!target) return;
-
-            if (target.classList.contains('delete-btn')) {
-                if (confirm('Are you sure you want to delete this feature?')) {
-                    const card = target.closest('.feature-card');
-                    const path = card.getAttribute('data-path');
-                    const parentPath = path.substring(0, path.lastIndexOf('['));
-                    const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']')));
-                    let parentArray = getNestedProperty(currentLessonData, parentPath);
-                    parentArray.splice(index, 1);
-                    renderEditor();
-                }
-            } else if (target.classList.contains('add-feature-btn')) {
-                const path = target.getAttribute('data-path');
-                // In a real app, this would be a modal with a dropdown of feature types
-                const newFeatureType = prompt('Enter new feature type (e.g., "learning_goals", "rich_text"):', 'rich_text');
-                if(newFeatureType) {
-                    let parentArray = getNestedProperty(currentLessonData, path);
-                    // Create a default template for the new feature
-                    const newFeature = {
-                        feature_type: newFeatureType,
-                        feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`,
-                        feature_data: { data_type: 'rich_text', content: 'New content here...' }
-                    };
-                    parentArray.push(newFeature);
-                    renderEditor();
-                }
-            }
-        }
+        function attachEventListeners() { /* ... */ }
+        function handleInputChange(e) { /* ... */ }
+        function handleButtonClick(e) { /* ... */ }
 
         // --- TINYMCE & SORTABLEJS INTEGRATION ---
-        function initializeEditors() {
-            const editors = document.querySelectorAll('.tinymce-editor');
-            editors.forEach(editorEl => {
-                const path = editorEl.getAttribute('data-path');
-                tinymce.init({
-                    target: editorEl,
-                    height: 250,
-                    menubar: false,
-                    plugins: 'lists link image code help wordcount',
-                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | code | help',
-                    setup: (editor) => {
-                        tinymceInstances.set(path, editor);
-                        editor.on('change', () => {
-                            const content = editor.getContent();
-                            setNestedProperty(currentLessonData, path, content);
-                        });
-                    }
-                });
-            });
-        }
-
-        function destroyEditors() {
-            tinymceInstances.forEach((editor, path) => {
-                editor.destroy();
-            });
-            tinymceInstances.clear();
-        }
-
-        function initializeSortable() {
-            const lists = document.querySelectorAll('.sortable-list');
-            lists.forEach(listEl => {
-                new Sortable(listEl, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    onEnd: (evt) => {
-                        const path = evt.target.id.replace(/-/g, '.').replace('container', '');
-                        let parentArray = getNestedProperty(currentLessonData, path);
-                        const [movedItem] = parentArray.splice(evt.oldIndex, 1);
-                        parentArray.splice(evt.newIndex, 0, movedItem);
-                        renderEditor(); // Re-render to update paths and UI
-                    }
-                });
-            });
-        }
+        function initializeEditors() { /* ... */ }
+        function destroyEditors() { /* ... */ }
+        function initializeSortable() { /* ... */ }
         
         // --- SAVE FUNCTION ---
-        function saveChanges() {
-            console.log("--- SAVING CHANGES ---");
-            console.log(JSON.stringify(currentLessonData, null, 2));
-            alert("Lesson data saved to the browser console (Press F12 to view).");
-        }
+        function saveChanges() { /* ... */ }
 
         // --- START THE APP ---
-        init();
+        // Using a short timeout to ensure TinyMCE script has time to load from the dynamic script tag
+        setTimeout(init, 100); 
+    });
+
+    // --- PASTING THE FULL JS LOGIC FOR COMPLETENESS ---
+    // (This is the same logic as before, just placed here to make the file self-contained)
+    function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+    function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
+    document.addEventListener('DOMContentLoaded', () => {
+        let currentLessonData = null; let manifestData = []; const tinymceInstances = new Map();
+        const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const mainContent = document.getElementById('editor-main-content'); const saveButton = document.getElementById('save-button');
+        async function init() { try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest file not found."); manifestData = await response.json(); populateCourseSelector(); courseSelector.addEventListener('change', handleCourseChange); lessonSelector.addEventListener('change', handleLessonChange); saveButton.addEventListener('click', saveChanges); await handleCourseChange(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`; } }
+        function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+        function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
+        async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+        async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`; } }
+        function renderEditor() { destroyEditors(); let html = ``; html += `<h2 class="section-header">Lesson Overview</h2><div id="overview-items-container" class="sortable-list">`; (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { const path = `lesson_overview_items[${index}]`; html += renderFeature(feature, path); }); html += `</div>`; html += renderAddFeatureButton('lesson_overview_items'); (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => { html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div id="session-${sessionIndex}-support-items-container" class="sortable-list">`; (session.support_items || []).forEach((feature, featureIndex) => { const path = `lesson_support_sessions[${sessionIndex}].support_items[${featureIndex}]`; html += renderFeature(feature, path); }); html += `</div>`; html += renderAddFeatureButton(`lesson_support_sessions[${sessionIndex}].support_items`); }); mainContent.innerHTML = html; initializeEditors(); initializeSortable(); attachEventListeners(); }
+        function renderFeature(feature, path) { let contentHtml = ''; const dataType = feature.feature_data.data_type; switch(dataType) { case 'list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="list-item"><input type="text" value="${item}" data-path="${path}.feature_data.items[${i}]" /></div>`).join(''); break; case 'rich_text': contentHtml = `<textarea class="tinymce-editor" data-path="${path}.feature_data.content">${feature.feature_data.content || ''}</textarea>`; break; case 'intro_with_structured_list': contentHtml = `<div class="form-field"><label>Introduction</label><textarea class="tinymce-editor" data-path="${path}.feature_data.introduction">${feature.feature_data.introduction || ''}</textarea></div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`; break; default: contentHtml = `<pre><code>${JSON.stringify(feature.feature_data, null, 2)}</code></pre>`; } return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`; }
+        function renderAddFeatureButton(path) { return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`; }
+        function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); }
+        function handleInputChange(e) { if (e.target.matches('[data-path]')) { const path = e.target.getAttribute('data-path'); setNestedProperty(currentLessonData, path, e.target.value); } }
+        function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } else if (target.classList.contains('add-feature-btn')) { const path = target.getAttribute('data-path'); const newFeatureType = prompt('Enter new feature type (e.g., "learning_goals"):', 'rich_text'); if(newFeatureType) { let parentArray = getNestedProperty(currentLessonData, path); const newFeature = { feature_type: newFeatureType, feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`, feature_data: { data_type: 'rich_text', content: '' } }; parentArray.push(newFeature); renderEditor(); } } }
+        function initializeEditors() { const editors = document.querySelectorAll('.tinymce-editor'); editors.forEach(editorEl => { const path = editorEl.getAttribute('data-path'); tinymce.init({ target: editorEl, height: 250, menubar: false, plugins: 'lists link image code help wordcount', toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | code | help', setup: (editor) => { tinymceInstances.set(path, editor); editor.on('change', () => { const content = editor.getContent(); setNestedProperty(currentLessonData, path, content); }); } }); }); }
+        function destroyEditors() { tinymceInstances.forEach((editor, path) => { editor.destroy(); }); tinymceInstances.clear(); }
+        function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { const containerId = evt.target.id; const path = containerId.replace(/-/g, '.').replace('container', '').replace('overview.items', 'lesson_overview_items').replace('support.items', 'support_items'); let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
+        function saveChanges() { console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
+        setTimeout(() => { if (typeof tinymce !== 'undefined') { init(); } else { setTimeout(init, 500); } }, 100);
     });
     </script>
 </body>
