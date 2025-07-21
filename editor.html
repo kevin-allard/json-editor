@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Content Editor</title>
+    <!-- TinyMCE Rich Text Editor -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- SortableJS for Drag-and-Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        :root {
+            --bg-main: #f0f2f5; --bg-card: #ffffff; --border-color: #d9d9d9; --primary-color: #1890ff;
+            --text-dark: #262626; --text-light: #8c8c8c; --header-bg: #ffffff; --danger-color: #f5222d;
+        }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-main); margin: 0; color: var(--text-dark); }
+        .editor-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .editor-header { background-color: var(--header-bg); padding: 16px 24px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.09); }
+        .selector-group { display: flex; flex-direction: column; gap: 4px; }
+        .selector-group label { font-size: 12px; font-weight: 500; color: var(--text-light); }
+        .selector-group select { font-size: 14px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; min-width: 250px; background-color: #fff; }
+        .save-button { margin-left: auto; background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 0.3s; }
+        .save-button:hover { background-color: #40a9ff; }
+        .section-header { font-size: 20px; font-weight: 700; margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid var(--border-color); color: var(--text-dark); }
+        .feature-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: box-shadow 0.3s; }
+        .feature-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .feature-header { display: flex; align-items: center; padding: 12px 16px; background-color: #fafafa; border-bottom: 1px solid var(--border-color); border-radius: 8px 8px 0 0; }
+        .feature-header .drag-handle { cursor: grab; margin-right: 12px; color: var(--text-light); font-size: 20px; line-height: 1; }
+        .feature-header h3 { margin: 0; font-size: 16px; font-weight: 500; flex-grow: 1; }
+        .feature-header .feature-type-badge { font-size: 12px; background-color: #e6f7ff; color: #1890ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #91d5ff; font-family: monospace; }
+        .feature-controls { display: flex; gap: 8px; }
+        .feature-controls button { background: none; border: none; cursor: pointer; color: var(--text-light); transition: color 0.3s; padding: 0; }
+        .feature-controls button:hover { color: var(--text-dark); }
+        .feature-controls .delete-btn:hover { color: var(--danger-color); }
+        .feature-content { padding: 16px; }
+        .form-field { margin-bottom: 16px; }
+        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+        .form-field input[type="text"], .form-field textarea { width: 100%; font-size: 14px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
+        .list-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .list-item input { flex-grow: 1; }
+        .add-item-btn, .add-feature-btn { display: inline-block; background-color: #f0f0f0; border: 1px dashed var(--border-color); color: var(--text-dark); padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+        .add-feature-btn { width: 100%; text-align: center; }
+        .add-item-btn:hover, .add-feature-btn:hover { background-color: #e8e8e8; border-color: #bfbfbf; }
+        .structured-list-item { padding: 12px; border: 1px solid #e8e8e8; border-radius: 6px; margin-bottom: 12px; }
+        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--text-light); }
+        svg { width: 18px; height: 18px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <header class="editor-header">
+            <div class="selector-group">
+                <label for="course-selector">Course</label>
+                <select id="course-selector"></select>
+            </div>
+            <div class="selector-group">
+                <label for="lesson-selector">Lesson</label>
+                <select id="lesson-selector"></select>
+            </div>
+            <button id="save-button" class="save-button">Save Changes (to Console)</button>
+        </header>
+
+        <main id="editor-main-content">
+            <div class="loader">Select a lesson to begin...</div>
+        </main>
+    </div>
+
+    <script>
+    // --- UTILITY FUNCTIONS ---
+    function getNestedProperty(obj, path) {
+        return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj);
+    }
+
+    function setNestedProperty(obj, path, value) {
+        const keys = path.split(/[.\[\]]+/).filter(Boolean);
+        const lastKey = keys.pop();
+        const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj);
+        lastObj[lastKey] = value;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- STATE MANAGEMENT ---
+        let currentLessonData = null;
+        let manifestData = [];
+        const tinymceInstances = new Map();
+        
+        // --- DOM ELEMENTS ---
+        const courseSelector = document.getElementById('course-selector');
+        const lessonSelector = document.getElementById('lesson-selector');
+        const mainContent = document.getElementById('editor-main-content');
+        const saveButton = document.getElementById('save-button');
+
+        // --- CORE INITIALIZATION ---
+        async function init() {
+            try {
+                const response = await fetch('manifest.json');
+                if (!response.ok) throw new Error("Manifest file not found.");
+                manifestData = await response.json();
+                
+                populateCourseSelector();
+                courseSelector.addEventListener('change', handleCourseChange);
+                lessonSelector.addEventListener('change', handleLessonChange);
+                saveButton.addEventListener('click', saveChanges);
+
+                await handleCourseChange();
+            } catch (error) {
+                mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`;
+            }
+        }
+        
+        // --- DATA LOADING & SELECTOR LOGIC ---
+        function populateCourseSelector() {
+            manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName)));
+        }
+        
+        function populateLessonSelector(courseName) {
+            lessonSelector.innerHTML = '';
+            const course = manifestData.find(c => c.courseName === courseName);
+            if (course && course.lessons.length > 0) {
+                lessonSelector.disabled = false;
+                course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path)));
+            } else {
+                lessonSelector.disabled = true;
+                lessonSelector.add(new Option('No lessons available', ''));
+            }
+        }
+
+        async function handleCourseChange() {
+            populateLessonSelector(courseSelector.value);
+            await handleLessonChange();
+        }
+
+        async function handleLessonChange() {
+            const path = lessonSelector.value;
+            if (!path) {
+                mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
+                currentLessonData = null;
+                return;
+            }
+            
+            mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`;
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`);
+                currentLessonData = await response.json();
+                renderEditor();
+            } catch (error) {
+                mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`;
+            }
+        }
+
+        // --- DYNAMIC RENDERING ---
+        function renderEditor() {
+            destroyEditors();
+            let html = ``;
+            // Render Overview Items
+            html += `<h2 class="section-header">Lesson Overview</h2><div id="overview-items-container" class="sortable-list">`;
+            currentLessonData.lesson_overview_items.forEach((feature, index) => {
+                const path = `lesson_overview_items[${index}]`;
+                html += renderFeature(feature, path);
+            });
+            html += `</div>`;
+            html += renderAddFeatureButton('lesson_overview_items');
+
+            // Render Support Sessions
+            currentLessonData.lesson_support_sessions.forEach((session, sessionIndex) => {
+                html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div id="session-${sessionIndex}-support-items-container" class="sortable-list">`;
+                session.support_items.forEach((feature, featureIndex) => {
+                    const path = `lesson_support_sessions[${sessionIndex}].support_items[${featureIndex}]`;
+                    html += renderFeature(feature, path);
+                });
+                html += `</div>`;
+                html += renderAddFeatureButton(`lesson_support_sessions[${sessionIndex}].support_items`);
+            });
+
+            mainContent.innerHTML = html;
+            
+            initializeEditors();
+            initializeSortable();
+            attachEventListeners();
+        }
+
+        function renderFeature(feature, path) {
+            let contentHtml = '';
+            const dataType = feature.feature_data.data_type;
+            
+            switch(dataType) {
+                case 'list':
+                    contentHtml = feature.feature_data.items.map((item, i) => `
+                        <div class="list-item">
+                            <input type="text" value="${item}" data-path="${path}.feature_data.items[${i}]" />
+                        </div>`).join('');
+                    break;
+                case 'rich_text':
+                    contentHtml = `<textarea class="tinymce-editor" data-path="${path}.feature_data.content">${feature.feature_data.content || ''}</textarea>`;
+                    break;
+                case 'intro_with_structured_list':
+                     contentHtml = `
+                        <div class="form-field">
+                            <label>Introduction</label>
+                            <textarea class="tinymce-editor" data-path="${path}.feature_data.introduction">${feature.feature_data.introduction || ''}</textarea>
+                        </div>
+                        <label>Items</label>
+                        ${feature.feature_data.items.map((item, i) => `
+                            <div class="structured-list-item">
+                                <div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div>
+                                <div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div>
+                            </div>
+                        `).join('')}`;
+                    break;
+                // Add more cases here for other data_types as needed...
+                default:
+                    contentHtml = `<pre><code>${JSON.stringify(feature.feature_data, null, 2)}</code></pre>`;
+            }
+
+            return `
+                <div class="feature-card" data-path="${path}">
+                    <div class="feature-header">
+                        <span class="drag-handle">☰</span>
+                        <div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div>
+                        <span class="feature-type-badge">${feature.feature_type}</span>
+                        <div class="feature-controls">
+                            <button class="delete-btn" title="Delete Feature">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="feature-content">${contentHtml}</div>
+                </div>`;
+        }
+        
+        function renderAddFeatureButton(path) {
+            return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`;
+        }
+        
+        // --- EVENT HANDLING ---
+        function attachEventListeners() {
+            mainContent.addEventListener('change', handleInputChange);
+            mainContent.addEventListener('click', handleButtonClick);
+        }
+
+        function handleInputChange(e) {
+            if (e.target.matches('[data-path]')) {
+                const path = e.target.getAttribute('data-path');
+                setNestedProperty(currentLessonData, path, e.target.value);
+            }
+        }
+        
+        function handleButtonClick(e) {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('Are you sure you want to delete this feature?')) {
+                    const card = target.closest('.feature-card');
+                    const path = card.getAttribute('data-path');
+                    const parentPath = path.substring(0, path.lastIndexOf('['));
+                    const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']')));
+                    let parentArray = getNestedProperty(currentLessonData, parentPath);
+                    parentArray.splice(index, 1);
+                    renderEditor();
+                }
+            } else if (target.classList.contains('add-feature-btn')) {
+                const path = target.getAttribute('data-path');
+                // In a real app, this would be a modal with a dropdown of feature types
+                const newFeatureType = prompt('Enter new feature type (e.g., "learning_goals", "rich_text"):', 'rich_text');
+                if(newFeatureType) {
+                    let parentArray = getNestedProperty(currentLessonData, path);
+                    // Create a default template for the new feature
+                    const newFeature = {
+                        feature_type: newFeatureType,
+                        feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`,
+                        feature_data: { data_type: 'rich_text', content: 'New content here...' }
+                    };
+                    parentArray.push(newFeature);
+                    renderEditor();
+                }
+            }
+        }
+
+        // --- TINYMCE & SORTABLEJS INTEGRATION ---
+        function initializeEditors() {
+            const editors = document.querySelectorAll('.tinymce-editor');
+            editors.forEach(editorEl => {
+                const path = editorEl.getAttribute('data-path');
+                tinymce.init({
+                    target: editorEl,
+                    height: 250,
+                    menubar: false,
+                    plugins: 'lists link image code help wordcount',
+                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | code | help',
+                    setup: (editor) => {
+                        tinymceInstances.set(path, editor);
+                        editor.on('change', () => {
+                            const content = editor.getContent();
+                            setNestedProperty(currentLessonData, path, content);
+                        });
+                    }
+                });
+            });
+        }
+
+        function destroyEditors() {
+            tinymceInstances.forEach((editor, path) => {
+                editor.destroy();
+            });
+            tinymceInstances.clear();
+        }
+
+        function initializeSortable() {
+            const lists = document.querySelectorAll('.sortable-list');
+            lists.forEach(listEl => {
+                new Sortable(listEl, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    onEnd: (evt) => {
+                        const path = evt.target.id.replace(/-/g, '.').replace('container', '');
+                        let parentArray = getNestedProperty(currentLessonData, path);
+                        const [movedItem] = parentArray.splice(evt.oldIndex, 1);
+                        parentArray.splice(evt.newIndex, 0, movedItem);
+                        renderEditor(); // Re-render to update paths and UI
+                    }
+                });
+            });
+        }
+        
+        // --- SAVE FUNCTION ---
+        function saveChanges() {
+            console.log("--- SAVING CHANGES ---");
+            console.log(JSON.stringify(currentLessonData, null, 2));
+            alert("Lesson data saved to the browser console (Press F12 to view).");
+        }
+
+        // --- START THE APP ---
+        init();
+    });
+    </script>
+</body>
+</html>
