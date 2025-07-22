@@ -8,17 +8,7 @@
     <!-- Load prerequisite scripts first -->
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
-    <!-- =================================================================== -->
-    <!-- NEW: Load the Formula Plugin and its dependencies -->
-    <!-- MathJax is required by the plugin to render the formulas -->
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- The plugin's main JavaScript file -->
-    <script src="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/plugin.min.js"></script>
-    <!-- The plugin's CSS file for styling -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
-    <!-- =================================================================== -->
-
+    
     <style>
         /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
@@ -46,8 +36,7 @@
         .feature-content { padding: 24px; }
         .form-field { margin-bottom: 20px; }
         .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
-        .form-field input[type="text"], .form-field textarea { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; resize: vertical; }
-        .list-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .form-field input[type="text"] { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
         .add-feature-btn { width: 100%; text-align: center; background: transparent; border: 2px dashed var(--md-border-color); color: var(--md-text-secondary); padding: 16px; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 8px; }
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -73,65 +62,147 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- APPLICATION BOOTSTRAPPER ---
-            const bootstrap = () => { /* ... Unchanged ... */ };
+            // --- APPLICATION BOOTSTRAPPER (Guarantees safe loading order) ---
+            const bootstrap = () => {
+                const mainContent = document.getElementById('editor-main-content');
+                if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) {
+                    mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`;
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
+                script.referrerPolicy = 'origin';
+                script.onload = () => {
+                    console.log("TinyMCE loaded successfully.");
+                    runApp(); // Run the main application ONLY after TinyMCE is ready
+                };
+                script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
+                document.head.appendChild(script);
+            };
 
             // --- The Main Application Logic ---
             function runApp() {
-                const app = {
-                    // ... properties are the same ...
+                // STATE & DOM
+                let currentLessonData = null; let manifestData = []; const tinymceInstances = new Map();
+                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const mainContent = document.getElementById('editor-main-content'); const saveButton = document.getElementById('save-button');
+                const AVAILABLE_FEATURES = ["learning_goals", "big_ideas", "facilitation_notes", "rich_text"];
+
+                // UTILITIES
+                function getNestedProperty(obj, path) { /* ... */ }
+                function setNestedProperty(obj, path, value) { /* ... */ }
+                function autosizeTextareas() { /* ... */ }
+
+                // CORE LOGIC
+                async function init() { /* ... */ }
+                function populateCourseSelector() { /* ... */ }
+                function populateLessonSelector(courseName) { /* ... */ }
+                async function handleCourseChange() { /* ... */ }
+                async function handleLessonChange() { /* ... */ }
+                
+                // RENDERERS (REWRITTEN)
+                function renderEditor() {
+                    destroyEditors();
+                    let html = ``;
+                    html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
+                    (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
+                    html += `</div>`;
+                    html += renderAddFeatureButton('lesson_overview_items');
+                    (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => {
+                        const sessionPath = `lesson_support_sessions[${sessionIndex}].support_items`;
+                        html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div data-path="${sessionPath}" class="sortable-list">`;
+                        (session.support_items || []).forEach((feature, featureIndex) => { html += renderFeature(feature, `${sessionPath}[${featureIndex}]`); });
+                        html += `</div>`;
+                        html += renderAddFeatureButton(sessionPath);
+                    });
+                    mainContent.innerHTML = html;
+                    initializeEditors();
+                    initializeSortable();
+                    attachEventListeners();
+                    autosizeTextareas();
+                }
+
+                function renderFeature(feature, path) {
+                    let contentHtml = ''; const dataType = feature.feature_data.data_type; const featureType = feature.feature_type;
                     
-                    // --- MODIFIED TinyMCE Initialization ---
-                    initializeEditors() {
-                        const editors = document.querySelectorAll('.tinymce-editor');
-                        editors.forEach(editorEl => {
-                            const path = editorEl.getAttribute('data-path');
-                            tinymce.init({
-                                target: editorEl,
-                                // ===================================================================
-                                // MODIFIED: Added 'formula' to plugins and toolbar
-                                plugins: 'lists link image code help wordcount autoresize formula',
-                                toolbar: 'undo redo | blocks | bold italic | formula | alignleft aligncenter alignright | bullist numlist | code | help',
-                                // ===================================================================
-                                menubar: true,
-                                min_height: 150,
-                                max_height: 600,
-                                autoresize_bottom_margin: 24,
-                                setup: (editor) => {
-                                    this.tinymceInstances.set(path, editor);
-                                    editor.on('change', () => { this.setNestedProperty(this.currentLessonData, path, editor.getContent()); });
-                                }
+                    // --- NEW UNIFIED LIST EDITOR LOGIC ---
+                    if (dataType === 'list' || dataType === 'rich_text_list') {
+                        const listTag = feature.feature_data.is_numbered ? 'ol' : 'ul';
+                        const listItemsHtml = (feature.feature_data.items || []).map(item => `<li>${item}</li>`).join('');
+                        contentHtml = `<textarea class="tinymce-list-editor full-width-editor" data-path="${path}.feature_data.items}">${listTag}${listItemsHtml}</${listTag}></textarea>`;
+                    } else {
+                        // --- EXISTING STRUCTURED RENDERERS ---
+                        switch (dataType) {
+                            case 'intro_with_list':
+                                const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul';
+                                const introListItemsHtml = (feature.feature_data.items || []).map(item => `<li>${item}</li>`).join('');
+                                contentHtml = `
+                                    <div class="form-field"><label>Introduction</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.introduction">${feature.feature_data.introduction || ''}</textarea></div>
+                                    <div class="form-field"><label>Items</label><textarea class="tinymce-list-editor full-width-editor" data-path="${path}.feature_data.items}">${introListTag}${introListItemsHtml}</${introListTag}></textarea></div>
+                                `;
+                                break;
+                            // (All other cases for rich_text, detailed_activity_facilitation, etc. go here, unchanged)
+                            case 'rich_text': if (featureType === 'learning_prompt') { contentHtml = `<div class="form-field"><label>Prompt Question</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.prompt_question">${feature.feature_data.prompt_question || ''}</textarea></div><div class="form-field"><label>Prompt Answer</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.prompt_answer">${feature.feature_data.prompt_answer || ''}</textarea></div>`; } else { contentHtml = `<textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.content">${feature.feature_data.content || ''}</textarea>`; } break; case 'intro_with_structured_list': contentHtml = `<div class="form-field"><label>Introduction</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.introduction">${feature.feature_data.introduction || ''}</textarea></div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`; break; case 'session_list': contentHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; contentHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); contentHtml += `</tbody></table>`; break; case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } contentHtml = `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>${promptHtml}<div class="form-field"><label>Steps</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.steps">${Array.isArray(data.steps) ? data.steps.join('\n\n') : data.steps || ''}</textarea></div>`; break; case 'differentiation_strategy': contentHtml = `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Subtitle</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.subtitle">${feature.feature_data.subtitle || ''}</textarea></div><div class="form-field"><label>Text</label><textarea class="tinymce-editor full-width-editor" data-path="${path}.feature_data.text">${feature.feature_data.text || ''}</textarea></div>`; break; case 'ongoing_assessment': contentHtml = `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label><textarea class="tinymce-list-editor full-width-editor" data-path="${path}.feature_data.questions"><ul>${(feature.feature_data.questions || []).map(q => `<li>${q}</li>`).join('')}</ul></textarea></div><div class="form-field"><label>Notes</label><textarea class="tinymce-list-editor full-width-editor" data-path="${path}.feature_data.notes"><ul>${(feature.feature_data.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></textarea></div>`; break; case 'question_set_list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="question-set-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label><input type="text" value="${item.item_numbers}" data-path="${path}.feature_data.items[${i}].item_numbers" /></div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label><textarea class="tinymce-list-editor full-width-editor" data-path="${path}.feature_data.items[${i}].questions"><ul>${(item.questions || []).map(q => `<li>${q}</li>`).join('')}</ul></textarea></div></div>`).join(''); break;
+                            default: contentHtml = `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
+                        }
+                    }
+                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${featureType}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`;
+                }
+                
+                // INTEGRATIONS (REWRITTEN)
+                function initializeEditors() {
+                    document.querySelectorAll('.tinymce-editor').forEach(el => initializeSingleEditor(el));
+                    document.querySelectorAll('.tinymce-list-editor').forEach(el => initializeListEditor(el));
+                }
+
+                function initializeSingleEditor(editorEl) {
+                    const path = editorEl.getAttribute('data-path');
+                    tinymce.init({
+                        target: editorEl,
+                        plugins: 'lists link image code help wordcount autoresize formula',
+                        toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help',
+                        menubar: true, min_height: 150, max_height: 600, autoresize_bottom_margin: 24,
+                        setup: (editor) => {
+                            tinymceInstances.set(path, editor);
+                            editor.on('change', () => { setNestedProperty(currentLessonData, path, editor.getContent()); });
+                        }
+                    });
+                }
+
+                function initializeListEditor(editorEl) {
+                    const path = editorEl.getAttribute('data-path');
+                    tinymce.init({
+                        target: editorEl,
+                        plugins: 'lists code help wordcount autoresize formula',
+                        toolbar: 'undo redo | bold italic formula | bullist numlist | code | help',
+                        menubar: false, min_height: 150, max_height: 600, autoresize_bottom_margin: 24,
+                        setup: (editor) => {
+                            tinymceInstances.set(path, editor);
+                            editor.on('change', () => {
+                                // The "magic" parser
+                                const content = editor.getContent();
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = content;
+                                const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML);
+                                setNestedProperty(currentLessonData, path, items);
                             });
-                        });
-                    },
-                    
-                    // --- All other functions are unchanged ---
-                    // (Pasting them here for completeness)
-                };
+                        }
+                    });
+                }
+
+                function destroyEditors() { tinymceInstances.forEach((editor) => editor.destroy()); tinymceInstances.clear(); }
+                function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { const path = evt.target.getAttribute('data-path'); let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
+
+                // All other functions are unchanged
+                function renderAddFeatureButton(path) { return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`; }
+                function attachEventListeners() { mainContent.addEventListener('change', (e) => handleInputChange(e)); mainContent.addEventListener('click', (e) => handleButtonClick(e)); }
+                function handleInputChange(e) { if (e.target.matches('[data-path]')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
+                function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } else if (target.classList.contains('add-feature-btn')) { const path = target.getAttribute('data-path'); const newFeatureType = prompt(`Enter new feature type:\n${AVAILABLE_FEATURES.join(', ')}`, 'rich_text'); if(newFeatureType && AVAILABLE_FEATURES.includes(newFeatureType)) { let parentArray = getNestedProperty(currentLessonData, path); const newFeature = { feature_type: newFeatureType, feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`, feature_data: { data_type: 'rich_text', content: '' } }; parentArray.push(newFeature); renderEditor(); } else if (newFeatureType) { alert('Invalid feature type.'); } } }
+                function saveChanges() { console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
                 
-                // (Pasting the rest of the unchanged JS logic for a complete file)
-                app.getNestedProperty = function(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); };
-                app.setNestedProperty = function(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; };
-                app.autosizeTextareas = function() { const textareas = document.querySelectorAll('textarea.autosize'); const resize = (textarea) => { textarea.style.height = 'auto'; textarea.style.height = `${textarea.scrollHeight}px`; }; textareas.forEach(textarea => { resize(textarea); textarea.addEventListener('input', () => resize(textarea)); });};
-                app.init = async function() { try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest file not found."); this.manifestData = await response.json(); this.populateCourseSelector(); this.dom.courseSelector.addEventListener('change', () => this.handleCourseChange()); this.dom.lessonSelector.addEventListener('change', () => this.handleLessonChange()); this.dom.saveButton.addEventListener('click', () => this.saveChanges()); await this.handleCourseChange(); } catch (error) { this.dom.mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`; } };
-                app.populateCourseSelector = function() { this.manifestData.forEach(course => this.dom.courseSelector.add(new Option(course.courseName, course.courseName))); };
-                app.populateLessonSelector = function(courseName) { this.dom.lessonSelector.innerHTML = ''; const course = this.manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { this.dom.lessonSelector.disabled = false; course.lessons.forEach(lesson => this.dom.lessonSelector.add(new Option(lesson.name, lesson.path))); } else { this.dom.lessonSelector.disabled = true; this.dom.lessonSelector.add(new Option('No lessons available', '')); } };
-                app.handleCourseChange = async function() { this.populateLessonSelector(this.dom.courseSelector.value); await this.handleLessonChange(); };
-                app.handleLessonChange = async function() { const path = this.dom.lessonSelector.value; if (!path) { this.dom.mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; this.currentLessonData = null; return; } this.dom.mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`); this.currentLessonData = await response.json(); this.renderEditor(); } catch (error) { this.dom.mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`; } };
-                app.renderEditor = function() { this.destroyEditors(); let html = ``; html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`; (this.currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += this.renderFeature(feature, `lesson_overview_items[${index}]`); }); html += `</div>`; html += this.renderAddFeatureButton('lesson_overview_items'); (this.currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => { const sessionPath = `lesson_support_sessions[${sessionIndex}].support_items`; html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div data-path="${sessionPath}" class="sortable-list">`; (session.support_items || []).forEach((feature, featureIndex) => { html += this.renderFeature(feature, `${sessionPath}[${featureIndex}]`); }); html += `</div>`; html += this.renderAddFeatureButton(sessionPath); }); this.dom.mainContent.innerHTML = html; this.initializeEditors(); this.initializeSortable(); this.attachEventListeners(); this.autosizeTextareas(); };
-                app.renderFeature = function(feature, path) { let contentHtml = ''; const dataType = feature.feature_data.data_type; const featureType = feature.feature_type; const hasHtmlContent = feature.feature_content_type === 'html'; const getInputOrEditor = (itemPath, content, rows = 2) => { const classes = hasHtmlContent ? 'tinymce-editor full-width-editor' : 'autosize full-width-editor'; return `<textarea class="${classes}" data-path="${itemPath}" rows="${rows}">${content || ''}</textarea>`; }; switch (dataType) { case 'list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.items[${i}]`, item, 1)}</div>`).join(''); break; case 'rich_text': if (featureType === 'learning_prompt') { contentHtml = `<div class="form-field"><label>Prompt Question</label>${getInputOrEditor(`${path}.feature_data.prompt_question`, feature.feature_data.prompt_question, 3)}</div><div class="form-field"><label>Prompt Answer</label>${getInputOrEditor(`${path}.feature_data.prompt_answer`, feature.feature_data.prompt_answer, 4)}</div>`; } else { contentHtml = getInputOrEditor(`${path}.feature_data.content`, feature.feature_data.content, 4); } break; case 'intro_with_structured_list': contentHtml = `<div class="form-field"><label>Introduction</label>${getInputOrEditor(`${path}.feature_data.introduction`, feature.feature_data.introduction, 4)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`; break; case 'titled_content_with_list': contentHtml = `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div><div class="form-field"><label>Introduction & List</label>${getInputOrEditor(`${path}.feature_data.introduction`, feature.feature_data.introduction, 8)}</div>`; break; case 'session_list': contentHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; contentHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); contentHtml += `</tbody></table>`; break; case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } contentHtml = `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${getInputOrEditor(`${path}.feature_data.steps`, Array.isArray(data.steps) ? data.steps.join('\n\n') : data.steps, 8)}</div>`; break; case 'differentiation_strategy': contentHtml = `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Subtitle</label>${getInputOrEditor(`${path}.feature_data.subtitle`, feature.feature_data.subtitle)}</div><div class="form-field"><label>Text</label>${getInputOrEditor(`${path}.feature_data.text`, feature.feature_data.text, 4)}</div>`; break; case 'ongoing_assessment': contentHtml = `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${(feature.feature_data.questions || []).map((q, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.questions[${i}]`, q, 1)}</div>`).join('')}</div><div class="form-field"><label>Notes</label>${(feature.feature_data.notes || []).map((n, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.notes[${i}]`, n, 1)}</div>`).join('')}</div>`; break; case 'question_set_list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="question-set-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label><input type="text" value="${item.item_numbers}" data-path="${path}.feature_data.items[${i}].item_numbers" /></div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${(item.questions || []).map((q, qi) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.items[${i}].questions[${qi}]`, q, 1)}</div>`).join('')}</div></div>`).join(''); break; default: contentHtml = `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p><pre><code>${JSON.stringify(feature.feature_data, null, 2)}</code></pre>`; } return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${featureType}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`; };
-                app.renderAddFeatureButton = function(path) { return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`; };
-                app.attachEventListeners = function() { this.dom.mainContent.addEventListener('change', (e) => this.handleInputChange(e)); this.dom.mainContent.addEventListener('click', (e) => this.handleButtonClick(e)); };
-                app.handleInputChange = function(e) { if (e.target.matches('[data-path]')) { this.setNestedProperty(this.currentLessonData, e.target.getAttribute('data-path'), e.target.value); } };
-                app.handleButtonClick = function(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = this.getNestedProperty(this.currentLessonData, parentPath); parentArray.splice(index, 1); this.renderEditor(); } } else if (target.classList.contains('add-feature-btn')) { const path = target.getAttribute('data-path'); const newFeatureType = prompt(`Enter new feature type:\n${this.AVAILABLE_FEATURES.join(', ')}`, 'rich_text'); if(newFeatureType && this.AVAILABLE_FEATURES.includes(newFeatureType)) { let parentArray = this.getNestedProperty(this.currentLessonData, path); const newFeature = { feature_type: newFeatureType, feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`, feature_data: { data_type: 'rich_text', content: '' } }; parentArray.push(newFeature); this.renderEditor(); } else if (newFeatureType) { alert('Invalid feature type.'); } } };
-                app.destroyEditors = function() { this.tinymceInstances.forEach((editor) => editor.destroy()); this.tinymceInstances.clear(); };
-                app.initializeSortable = function() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { const path = evt.target.getAttribute('data-path'); let parentArray = this.getNestedProperty(this.currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); this.renderEditor(); } }); }); };
-                app.saveChanges = function() { console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(this.currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); };
-                
-                app.init();
+                init();
             }
 
-            // Start the entire application by first loading TinyMCE, then running runApp().
+            // --- Start the entire application ---
             bootstrap();
         });
     </script>
