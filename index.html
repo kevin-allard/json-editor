@@ -64,38 +64,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
             // --- SCRIPT LOADER ---
             function loadTinyMCE(callback) {
-                // First, check if the API key variable exists from config.js
                 if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) {
                     console.error("TinyMCE API key is not defined. Please check your config.js file.");
                     document.getElementById('editor-main-content').innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found.</div>`;
                     return;
                 }
-
-                // If the key exists, create and load the script
                 const script = document.createElement('script');
                 script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
                 script.referrerPolicy = 'origin';
-                
-                // This onload callback is CRITICAL. It ensures the main app only runs after TinyMCE is ready.
                 script.onload = () => {
                     console.log("TinyMCE loaded successfully.");
                     callback();
                 };
-
                 script.onerror = () => {
-                    console.error("Failed to load TinyMCE script. Check API key, network connection, or TinyMCE account status.");
+                    console.error("Failed to load TinyMCE script.");
                     document.getElementById('editor-main-content').innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`;
                 }
-                
                 document.head.appendChild(script);
             }
 
             // --- The Main Application Logic ---
             function main() {
-                // All the previous JS code goes inside here.
                 let currentLessonData = null;
                 let manifestData = [];
                 const tinymceInstances = new Map();
@@ -105,11 +96,9 @@
                 const saveButton = document.getElementById('save-button');
                 const AVAILABLE_FEATURES = ["learning_goals", "big_ideas", "facilitation_notes", "rich_text"];
 
-                // --- UTILITY FUNCTIONS ---
                 function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
                 function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
                 
-                // --- CORE LOGIC ---
                 async function init() { 
                     try {
                         const response = await fetch('manifest.json');
@@ -126,28 +115,11 @@
                 }
 
                 function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
-                
-                function populateLessonSelector(courseName) {
-                    lessonSelector.innerHTML = '';
-                    const course = manifestData.find(c => c.courseName === courseName);
-                    if (course && course.lessons.length > 0) {
-                        lessonSelector.disabled = false;
-                        course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path)));
-                    } else {
-                        lessonSelector.disabled = true;
-                        lessonSelector.add(new Option('No lessons available', ''));
-                    }
-                }
-                
+                function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
                 async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
-                
                 async function handleLessonChange() {
                     const path = lessonSelector.value;
-                    if (!path) {
-                        mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
-                        currentLessonData = null;
-                        return;
-                    }
+                    if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; }
                     mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`;
                     try {
                         const response = await fetch(path);
@@ -159,11 +131,11 @@
                     }
                 }
                 
-                // --- DYNAMIC RENDERING ---
                 function renderEditor() {
                     destroyEditors();
                     let html = ``;
-                    html += `<h2 class="section-header">Lesson Overview</h2><div id="lesson_overview_items" class="sortable-list">`;
+                    // **FIX:** Using data-path attribute for sortable container
+                    html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => {
                         const path = `lesson_overview_items[${index}]`;
                         html += renderFeature(feature, path);
@@ -171,13 +143,14 @@
                     html += `</div>`;
                     html += renderAddFeatureButton('lesson_overview_items');
                     (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => {
-                        html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div id="lesson_support_sessions[${sessionIndex}].support_items" class="sortable-list">`;
+                        const sessionPath = `lesson_support_sessions[${sessionIndex}].support_items`;
+                        html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2><div data-path="${sessionPath}" class="sortable-list">`;
                         (session.support_items || []).forEach((feature, featureIndex) => {
-                            const path = `lesson_support_sessions[${sessionIndex}].support_items[${featureIndex}]`;
+                            const path = `${sessionPath}[${featureIndex}]`;
                             html += renderFeature(feature, path);
                         });
                         html += `</div>`;
-                        html += renderAddFeatureButton(`lesson_support_sessions[${sessionIndex}].support_items`);
+                        html += renderAddFeatureButton(sessionPath);
                     });
                     mainContent.innerHTML = html;
                     initializeEditors();
@@ -185,26 +158,44 @@
                     attachEventListeners();
                 }
 
-                function renderFeature(feature, path) {
-                    // This function is the same as the last working version
+                function renderFeature(feature, path) { /* ... Unchanged from the previous working version ... */ 
                     let contentHtml = ''; const dataType = feature.feature_data.data_type; const featureType = feature.feature_type; const hasHtmlContent = feature.feature_content_type === 'html';
                     const getInputOrEditor = (itemPath, content, rows = 2) => { if (hasHtmlContent) return `<textarea class="tinymce-editor" data-path="${itemPath}">${content || ''}</textarea>`; return `<textarea rows="${rows}" data-path="${itemPath}">${content || ''}</textarea>`; };
                     switch (dataType) { case 'list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.items[${i}]`, item, 1)}</div>`).join(''); break; case 'rich_text': if (featureType === 'learning_prompt') { contentHtml = `<div class="form-field"><label>Prompt Question</label>${getInputOrEditor(`${path}.feature_data.prompt_question`, feature.feature_data.prompt_question, 3)}</div><div class="form-field"><label>Prompt Answer</label>${getInputOrEditor(`${path}.feature_data.prompt_answer`, feature.feature_data.prompt_answer, 4)}</div>`; } else { contentHtml = getInputOrEditor(`${path}.feature_data.content`, feature.feature_data.content, 4); } break; case 'intro_with_structured_list': contentHtml = `<div class="form-field"><label>Introduction</label>${getInputOrEditor(`${path}.feature_data.introduction`, feature.feature_data.introduction, 4)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`; break; case 'titled_content_with_list': contentHtml = `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div><div class="form-field"><label>Introduction & List</label>${getInputOrEditor(`${path}.feature_data.introduction`, feature.feature_data.introduction, 8)}</div>`; break; case 'session_list': contentHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; contentHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); contentHtml += `</tbody></table>`; break; case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } contentHtml = `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${getInputOrEditor(`${path}.feature_data.steps`, Array.isArray(data.steps) ? data.steps.join('\n\n') : data.steps, 8)}</div>`; break; case 'differentiation_strategy': contentHtml = `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Subtitle</label>${getInputOrEditor(`${path}.feature_data.subtitle`, feature.feature_data.subtitle)}</div><div class="form-field"><label>Text</label>${getInputOrEditor(`${path}.feature_data.text`, feature.feature_data.text, 4)}</div>`; break; case 'ongoing_assessment': contentHtml = `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${(feature.feature_data.questions || []).map((q, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.questions[${i}]`, q, 1)}</div>`).join('')}</div><div class="form-field"><label>Notes</label>${(feature.feature_data.notes || []).map((n, i) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.notes[${i}]`, n, 1)}</div>`).join('')}</div>`; break; case 'question_set_list': contentHtml = (feature.feature_data.items || []).map((item, i) => `<div class="question-set-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label><input type="text" value="${item.item_numbers}" data-path="${path}.feature_data.items[${i}].item_numbers" /></div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${(item.questions || []).map((q, qi) => `<div class="list-item">${getInputOrEditor(`${path}.feature_data.items[${i}].questions[${qi}]`, q, 1)}</div>`).join('')}</div></div>`).join(''); break; default: contentHtml = `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p><pre><code>${JSON.stringify(feature.feature_data, null, 2)}</code></pre>`; }
                     return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${featureType}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`;
                 }
-
                 function renderAddFeatureButton(path) { return `<button class="add-feature-btn" data-path="${path}">+ Add Feature to Section</button>`; }
                 function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); }
                 function handleInputChange(e) { if (e.target.matches('[data-path]')) { const path = e.target.getAttribute('data-path'); setNestedProperty(currentLessonData, path, e.target.value); } }
                 function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } else if (target.classList.contains('add-feature-btn')) { const path = target.getAttribute('data-path'); const newFeatureType = prompt(`Enter new feature type:\n${AVAILABLE_FEATURES.join(', ')}`, 'rich_text'); if(newFeatureType && AVAILABLE_FEATURES.includes(newFeatureType)) { let parentArray = getNestedProperty(currentLessonData, path); const newFeature = { feature_type: newFeatureType, feature_title: `New ${newFeatureType.replace(/_/g, ' ')}`, feature_data: { data_type: 'rich_text', content: '' } }; parentArray.push(newFeature); renderEditor(); } else if (newFeatureType) { alert('Invalid feature type.'); } } }
                 function initializeEditors() { const editors = document.querySelectorAll('.tinymce-editor'); editors.forEach(editorEl => { const path = editorEl.getAttribute('data-path'); tinymce.init({ target: editorEl, height: editorEl.rows > 2 ? 250 : 150, menubar: true, plugins: 'lists link image code help wordcount', toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | code | help', setup: (editor) => { tinymceInstances.set(path, editor); editor.on('change', () => { const content = editor.getContent(); setNestedProperty(currentLessonData, path, content); }); } }); }); }
                 function destroyEditors() { tinymceInstances.forEach((editor) => editor.destroy()); tinymceInstances.clear(); }
-                function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { const path = evt.target.id; let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
+                function initializeSortable() {
+                    const lists = document.querySelectorAll('.sortable-list');
+                    lists.forEach(listEl => {
+                        new Sortable(listEl, {
+                            handle: '.drag-handle',
+                            animation: 150,
+                            onEnd: (evt) => {
+                                // **FIX:** Using the more reliable data-path attribute
+                                const path = evt.target.getAttribute('data-path');
+                                let parentArray = getNestedProperty(currentLessonData, path);
+                                const [movedItem] = parentArray.splice(evt.oldIndex, 1);
+                                parentArray.splice(evt.newIndex, 0, movedItem);
+                                renderEditor();
+                            }
+                        });
+                    });
+                }
                 function saveChanges() { console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
                 
                 // Start the main application logic
                 init();
             }
-        </script>
+
+            // Start the entire application by first loading TinyMCE, then running main().
+            loadTinyMCE(main);
+        });
+    </script>
 </body>
 </html>
