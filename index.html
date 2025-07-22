@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.21 -->
+<!-- Editor Version: 2.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,10 +14,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
+        /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
-            --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
-            --md-border-color: #e0e0e0; --md-text-primary: #212121; --md-text-secondary: #757575;
+            --md-primary-color: #3f51b5; --md-primary-color-dark: #303f9f; --md-accent-color: #ff4081;
+            --md-bg-main: #f5f5f5; --md-bg-card: #ffffff; --md-border-color: #e0e0e0;
+            --md-text-primary: #212121; --md-text-secondary: #757575; --md-text-hint: #9e9e9e;
             --md-danger-color: #f44336; --md-elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
         }
         body { font-family: 'Roboto', sans-serif; background-color: var(--md-bg-main); margin: 0; color: var(--md-text-primary); }
@@ -26,22 +28,21 @@
         .selector-group { position: relative; }
         .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
         .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-        .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
-        .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
+        .save-button { margin-left: auto; background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
         .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
-        .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; }
+        .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; background-color: rgba(0,0,0,0.02); }
         .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-text-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--md-border-color); border-radius: 8px 8px 0 0; }
         .block-group-content { padding: 8px 24px 24px 24px; }
         .feature-card { background-color: var(--md-bg-card); border-radius: 4px; margin-bottom: 20px; box-shadow: var(--md-elevation-1); }
         .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
-        .feature-header .drag-handle { cursor: grab; margin-right: 16px; color: var(--md-text-secondary); font-size: 24px; line-height: 1; }
+        .feature-header .drag-handle { cursor: grab; margin-right: 16px; color: var(--md-text-hint); font-size: 24px; line-height: 1; }
         .feature-header h3 { margin: 0; font-size: 18px; font-weight: 500; flex-grow: 1; }
         .feature-header .feature-type-badge { font-size: 12px; color: var(--md-primary-color); background-color: #e8eaf6; padding: 4px 8px; border-radius: 12px; font-family: monospace; }
         .feature-content { padding: 24px; }
         .form-field { margin-bottom: 20px; }
         .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
         .form-field input[type="text"] { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
+        .add-feature-btn { width: 100%; text-align: center; background: transparent; border: 2px dashed var(--md-border-color); color: var(--md-text-secondary); padding: 16px; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 8px; }
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
@@ -57,51 +58,68 @@
         <header class="editor-header">
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
-            <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.21</span>
-                <button id="save-button" class="save-button">Save Changes</button>
-            </div>
+            <button id="save-button" class="save-button">Save Changes (to Console)</button>
         </header>
         <main id="editor-main-content"><div class="loader">Loading Editor...</div></main>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => { /* ... unchanged ... */ };
+            const mainContent = document.getElementById('editor-main-content');
+
+            if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) {
+                mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`;
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
+            script.referrerPolicy = 'origin';
+            
+            script.onload = () => {
+                console.log("TinyMCE loaded successfully.");
+                runApp();
+            };
+
+            script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
+            document.head.appendChild(script);
 
             function runApp() {
                 let currentLessonData = null; let manifestData = []; let activeEditorPath = null;
-                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const mainContent = document.getElementById('editor-main-content'); const saveButton = document.getElementById('save-button');
+                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const saveButton = document.getElementById('save-button');
                 const AVAILABLE_FEATURES = ["learning_goals", "big_ideas", "facilitation_notes", "rich_text", "assignment_suggestions", "skills_practice_suggestions"];
 
-                function getNestedProperty(obj, path) { /* ... */ }
-                function setNestedProperty(obj, path, value) { /* ... */ }
+                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
                 
-                async function init() { /* ... */ }
-                // ... all core logic functions are unchanged
-
+                async function init() { try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest file not found."); manifestData = await response.json(); populateCourseSelector(); courseSelector.addEventListener('change', handleCourseChange); lessonSelector.addEventListener('change', handleLessonChange); saveButton.addEventListener('click', saveChanges); await handleCourseChange(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`; } }
+                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
+                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+                async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`; } }
+                
                 function destroyActiveEditor(saveContent = true) {
                     if (activeEditorPath) {
                         const editor = tinymce.get(activeEditorPath);
-                        const container = document.querySelector(`[data-path="${activeEditorPath}"]`).parentElement;
+                        const container = document.querySelector(`[data-editor-container-path="${activeEditorPath}"]`);
                         if (editor && container) {
                             if (saveContent) {
-                                const isList = container.getAttribute('data-type') === 'list';
+                                const { path, isList } = JSON.parse(container.getAttribute('data-editor-info'));
                                 if (isList) {
                                     const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
                                     const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML);
-                                    setNestedProperty(currentLessonData, activeEditorPath, items);
+                                    setNestedProperty(currentLessonData, path, items);
                                 } else {
-                                    setNestedProperty(currentLessonData, activeEditorPath, editor.getContent());
+                                    setNestedProperty(currentLessonData, path, editor.getContent());
                                 }
                             }
                             editor.remove();
                         }
-                        
-                        const featurePath = container.closest('.feature-card').getAttribute('data-path');
-                        const feature = getNestedProperty(currentLessonData, featurePath);
-                        container.innerHTML = renderFeatureContent(feature, featurePath); // Re-render the static view
-                        
+                        if (container) {
+                            const featurePath = container.getAttribute('data-feature-path');
+                            const feature = getNestedProperty(currentLessonData, featurePath);
+                            container.innerHTML = renderFeatureContent(feature, featurePath);
+                        }
                         activeEditorPath = null;
                     }
                 }
@@ -110,7 +128,7 @@
                     const target = e.target.closest('.editable-content');
                     if (!target || (activeEditorPath && target.getAttribute('data-path') === activeEditorPath)) return;
                     
-                    destroyActiveEditor(); // <-- THE CRITICAL FIX
+                    destroyActiveEditor();
 
                     const path = target.getAttribute('data-path');
                     activeEditorPath = path;
@@ -127,11 +145,32 @@
                     }
                 }
                 
-                function renderEditor() { /* ... unchanged, but now works with the fixed renderFeatureContent ... */ }
+                function renderEditor() {
+                    destroyActiveEditor(false); 
+                    let html = ``;
+                    html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
+                    (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
+                    html += `</div>`;
+                    (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => {
+                        html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
+                        const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
+                        const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
+                        blockOrder.forEach(blockName => {
+                            if (blocks[blockName]) {
+                                html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content sortable-list" data-path="lesson_support_sessions[${sessionIndex}].support_items">`;
+                                blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); html += renderFeature(feature, `lesson_support_sessions[${sessionIndex}].support_items[${originalIndex}]`); });
+                                html += `</div></div>`;
+                            }
+                        });
+                    });
+                    mainContent.innerHTML = html;
+                    initializeSortable();
+                    attachEventListeners();
+                }
 
                 function renderFeature(feature, path) {
                     const contentHtml = renderFeatureContent(feature, path);
-                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`;
+                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content" data-editor-container-path="${path}" data-feature-path="${path}">${contentHtml}</div></div>`;
                 }
                 
                 function renderFeatureContent(feature, path) {
@@ -141,72 +180,27 @@
                         if (isList) content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
                         return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
                     };
-
-                    // --- FULLY REWRITTEN SWITCH STATEMENT ---
                     switch (dataType) {
-                        case 'list': 
-                        case 'rich_text_list': 
-                            const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul'; 
-                            return createEditableDiv(`${path}.feature_data.items`, true, listTag);
-                        
-                        case 'titled_intro_with_list':
-                            const titledListTag = feature.feature_data.is_numbered ? 'ol' : 'ul';
-                            return `
-                                <div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div>
-                                <div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div>
-                                <div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, titledListTag)}</div>`;
-
-                        case 'intro_with_list': 
-                            const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; 
-                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
-                        
-                        case 'rich_text': 
-                            if (feature.feature_type === 'learning_prompt') { 
-                                return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div><div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`; 
-                            } else { 
-                                return createEditableDiv(`${path}.feature_data.content`); 
-                            }
-
-                        case 'intro_with_structured_list': 
-                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
-                        
-                        case 'session_list': 
-                            let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
-                            tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
-                            return tableHtml += `</tbody></table>`;
-                        
-                        case 'detailed_activity_facilitation': 
-                            const data = feature.feature_data; 
-                            let promptHtml = ''; 
-                            if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } 
-                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
-                        
-                        case 'differentiation_strategy': 
-                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
-                        
-                        case 'ongoing_assessment': 
-                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
-                        
-                        case 'question_set_list': 
-                            return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
-                        
-                        default: 
-                            return `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
+                        case 'list': case 'rich_text_list': const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul'; return createEditableDiv(`${path}.feature_data.items`, true, listTag);
+                        case 'intro_with_list': const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
+                        case 'rich_text': if (feature.feature_type === 'learning_prompt') { return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div><div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`; } else { return createEditableDiv(`${path}.feature_data.content`); }
+                        case 'session_list': let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); return tableHtml += `</tbody></table>`;
+                        default: return `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
                     }
                 }
                 
-                // --- All other functions are unchanged ---
-                function initializeSingleEditor(textarea) { /* ... */ }
-                function initializeListEditor(textarea) { /* ... */ }
-                function destroyEditors() { /* ... */ }
-                function initializeSortable() { /* ... */ }
-                function handleInputChange(e) { /* ... */ }
-                function handleButtonClick(e) { /* ... */ }
-                function saveChanges() { /* ... */ }
+                function initializeSingleEditor(textarea) { const path = textarea.id; tinymce.init({ target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, max_height: 600, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); } }); }
+                function initializeListEditor(textarea) { const path = textarea.id; tinymce.init({ target: textarea, plugins: 'lists code help wordcount autoresize formula', toolbar: 'undo redo | bold italic formula | bullist numlist | code | help', menubar: false, min_height: 150, max_height: 600, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); } }); }
+                function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { destroyActiveEditor(); const path = evt.target.getAttribute('data-path'); let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
+                function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); mainContent.addEventListener('click', handleContentClick); document.body.addEventListener('click', (e) => { if (!e.target.closest('.feature-content') && !e.target.closest('.tox')) { destroyActiveEditor(); } }, true); }
+                function handleInputChange(e) { if (e.target.matches('[data-path]')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
+                function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } }
+                function saveChanges() { destroyActiveEditor(); console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
                 
+                // **CRITICAL FIX:** This line starts the entire application.
                 init();
             }
-            
+
             bootstrap();
         });
     </script>
