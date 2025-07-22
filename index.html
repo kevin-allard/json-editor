@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-primary-color-dark: #303f9f; --md-accent-color: #ff4081;
@@ -142,9 +141,9 @@
                         initializeSingleEditor(document.getElementById(path));
                     }
                 }
-
+                
                 function renderEditor() {
-                    destroyActiveEditor(false); // Destroy without saving, as we are rebuilding everything
+                    destroyActiveEditor(false); 
                     let html = ``;
                     html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
@@ -168,7 +167,7 @@
 
                 function renderFeature(feature, path) {
                     const contentHtml = renderFeatureContent(feature, path);
-                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content" data-editor-container-path="${path}" data-feature-path="${path}">${contentHtml}</div></div>`;
+                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l--1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content" data-editor-container-path="${path}" data-feature-path="${path}">${contentHtml}</div></div>`;
                 }
                 
                 function renderFeatureContent(feature, path) {
@@ -196,9 +195,11 @@
                 function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } }
                 function saveChanges() { destroyActiveEditor(); console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
                 
+                // **CRITICAL FIX:** This line starts the entire application.
                 init();
             }
 
+            // Start the entire process
             bootstrap();
         });
     </script>
