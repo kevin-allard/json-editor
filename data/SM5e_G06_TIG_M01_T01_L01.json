@@ -21,7 +21,7 @@
       "feature_type": "learning_goals",
       "feature_title": "My Learning Goals",
       "feature_data": {
-        "data_type": "rich_text_list",
+        "data_type": "list",
         "items": [
           "I can use a reasonable scale for a graph modeling a situation.",
           "I can identify the independent and dependent quantities for a situation.",
@@ -64,7 +64,7 @@
       "feature_title": "Setting The Stage",
       "feature_content_type": "html",
       "feature_data": {
-        "data_type": "rich_text_list",
+        "data_type": "list",
         "items": [
           "Communicate the learning goals and key terms to look for.",
           "Tap into your students' prior learning by reading the <em>Make a Connection</em>.",
@@ -77,7 +77,7 @@
       "feature_title": "MLL Language Goal",
       "feature_content_type": "html",
       "feature_data": {
-        "data_type": "rich_text_list",
+        "data_type": "list",
         "items": [
           "I can interpret and discuss real-world situations involving independent and dependent quantities using comparative language (e.g., <em>as x increases, y decreases</em>)."
         ]
@@ -110,7 +110,7 @@
       "feature_title": "Essential Ideas",
       "feature_content_type": "html",
       "feature_data": {
-        "data_type": "rich_text_list",
+        "data_type": "list",
         "items": [
           "When one quantity depends on another in a situation, it is the dependent quantity. The quantity it depends on is the independent quantity.",
           "You can use a graph to model a situation.",
@@ -124,8 +124,8 @@
       "feature_title": "Math Language Routine",
       "feature_content_type": "html",
       "feature_data": {
-        "data_type": "intro_with_list",
-        "is_numbered": true,
+        "data_type": "titled_intro_with_list",
+        "title": "MLR 4: Information Gap",
         "introduction": "<p>In Activity 1, <em>Connecting Situations and Their Graphs</em>, students determine the independent and dependent quantities for eight situations, match each of the situations to its graph, label the x- and y-axis with the appropriate quantity and a reasonable scale, and interpret the meaning of the origin for each situation. This is an opportunity to implement <strong>Information Gap</strong>.</p>",
         "items": [
           "Follow the guidance for facilitating the activity.",
@@ -133,7 +133,8 @@
           "Have students complete the activity with a partner or small group.",
           "Monitor students while they work to assess understanding.",
           "Once students have finished the activity, have them discuss their experiences and share their strategies for matching each situation with the correct graph as a whole class."
-        ]
+        ],
+        "is_numbered": true
       }
     },
     {
@@ -158,10 +159,12 @@
       "support_items": [
         { "feature_type": "facilitation_notes", "feature_title": "Activate", "block": "Activate", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": null, "duration_minutes": 5, "purpose": "To identify the independent and dependent quantities in given situations", "materials": null, "driver_of_investigation": null, "activate_prompt": { "title": "What Comes First?", "prompt_text": "Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates." }, "steps": [ "Display, read, and discuss the situation and quantity pairs.", "Use a Think-Pair-Share routine to discuss the activity.", "Share and summarize: When one quantity depends on another in a situation, it is the dependent quantity. The quantity it depends on is the independent quantity." ] } },
         { "feature_type": "facilitation_notes", "feature_title": "Explore and Develop", "block": "Explore and Develop", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": "1", "duration_minutes": 25, "purpose": "To match graphs to situations and then compare and contrast the characteristics of the graphs", "materials": "Glue sticks or tape, Graphs of Situations Cutouts, scissors", "driver_of_investigation": "Make sense of the world.", "steps": [ "Read and discuss the introduction and directions.", "Group students to complete the activity.", "Share and summarize: To match a situation with its graph, you first need to identify the independent and dependent quantities to recognize the growth pattern. A graph's characteristics, such as whether it is a line or curve or increasing or decreasing, describe a relationship between two quantities." ] } },
-        { "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Just-in-Time Support", "subtitle": "<strong>Engagement: Sustaining Effort & Persistence</strong>", "text": "To make the task more manageable, split it into two parts. Provide Graphs B, E, and F for the first three situations and Graphs A, C, and D for the last three situations." } },
-        { "feature_type": "ongoing_assessment", "feature_title": "Ongoing Assessment", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "ongoing_assessment", "introduction_text": "Observe students as they match each situation to its graph.", "questions": [ "Are students using characteristics of the graphs to connect them to the situations?", "Are students using clues from the situations to determine the intervals?" ], "notes": [ "<strong>NOTE:</strong> This is the first pairing of these Habits of Mind: Model with mathematics. Use appropriate tools strategically.", "Have students refer to page xix for questions to ask themselves.", "<strong>NOTE:</strong> All situations provide opportunities for students to learn something new." ] } },
+        { "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Just-in-Time Support", "text": "<p><strong><em>Engagement: Sustaining Effort & Persistence</em></strong></p><p>To make the task more manageable, split it into two parts. Provide Graphs B, E, and F for the first three situations and Graphs A, C, and D for the last three situations.</p>" } },
+        { "feature_type": "ongoing_assessment", "feature_title": "Ongoing Assessment", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "ongoing_assessment", "introduction_text": "Observe students as they match each situation to its graph.", "questions": [ "Are students using characteristics of the graphs to connect them to the situations?", "Are students using clues from the situations to determine the intervals?" ], "notes": "<p><strong>NOTE:</strong> This is the first pairing of these Habits of Mind: Model with mathematics. Use appropriate tools strategically.</p><p><strong>NOTE:</strong> Have students refer to page xix for questions to ask themselves.</p><p><strong>NOTE:</strong> All situations provide opportunities for students to learn something new.</p>" } },
         { "feature_type": "cultivate_connections", "feature_title": "Cultivate Connections", "block": "Explore and Develop", "activity_number": "1", "feature_data": { "data_type": "rich_text", "content": "Considering an upgraded smartphone provides an opportunity to learn about classmates' experiences. Consider having students share examples of items they own that they have upgraded over time, or discuss the impact of mass tech upgrades on the environment." } },
-        { "feature_type": "general_notes", "feature_title": "General Notes", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "rich_text", "content": "<p><strong>NOTE:</strong> Once students have matched a graph with the appropriate situation, have them go back and examine all the graphs. Have students discuss the following:</p><ul><li>What similarities do you notice in the graphs?</li><li>What differences do you notice in the graphs?</li><li>How did you label the independent and dependent quantities in each graph?</li><li>Analyze each graph from left to right. Describe any graphical characteristics you notice.</li></ul><p><strong>Student Look-Fors:</strong> Social-Emotional Learning - Using self-motivation and self-discipline to persevere in problem solving</p><p><strong>MLL Multilingual Learner Support:</strong> Provide additional vocabulary support with illustrated examples of these terms: increase, decrease, straight, curved, maximum, and minimum.</p>" } },
+        { "feature_type": "general_notes", "feature_title": "General Notes", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "rich_text", "content": "<p><strong>NOTE:</strong> Once students have matched a graph with the appropriate situation, have them go back and examine all the graphs. Have students discuss the following:</p><ul><li>What similarities do you notice in the graphs?</li><li>What differences do you notice in the graphs?</li><li>How did you label the independent and dependent quantities in each graph?</li><li>Analyze each graph from left to right. Describe any graphical characteristics you notice.</li></ul>" } },
+        { "feature_type": "student_look_fors", "feature_title": "Student Look-Fors", "block": "Explore and Develop", "activity_number": "1", "feature_data": { "data_type": "rich_text", "content": "<p><strong>Social-Emotional Learning</strong></p><p>Using self-motivation and self-discipline to persevere in problem solving</p>" } },
+        { "feature_type": "mll_support_note", "feature_title": "MLL Support Note", "block": "Explore and Develop", "activity_number": "1", "feature_data": { "data_type": "rich_text", "content": "<p>Provide additional vocabulary support with illustrated examples of these terms: increase, decrease, straight, curved, maximum, and minimum.</p>" } },
         { "feature_type": "purposeful_questions", "feature_title": "Purposeful Questions", "block": "Explore and Develop", "feature_content_type": "html", "feature_data": { "data_type": "question_set_list", "items": [
               { "activity_number": "1", "item_numbers": "1-6", "student_page_number": "4", "question_type": "Probing", "questions": [ "Did you select a graph that was increasing or decreasing? Why?", "How did you determine the units and intervals for the axes?", "What is the meaning of the <em>x</em>-intercept? The <em>y</em>-intercept?" ] },
               { "activity_number": "1", "item_numbers": "1", "student_page_number": "4", "question_type": "Probing", "questions": [ "Is the dependent quantity the distance Pablo traveled or his height above water? Explain your thinking." ] },
@@ -177,11 +180,11 @@
               { "activity_number": "1", "item_numbers": "7", "student_page_number": "6", "question_type": "Seeing Structure", "questions": [ "Why is one graph in part (a) composed of line segments while the other is a curve?", "Why do both graphs in part (c) have symmetry?", "Why is one graph in part (c) composed of line segments while the other is a curve?" ] }
             ] } },
         { "feature_type": "facilitation_notes", "feature_title": "Reflect", "block": "Reflect", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": null, "duration_minutes": 15, "purpose": "To write a situation and sketch a graph for a possible trip to school", "materials": null, "driver_of_investigation": null, "steps": [ "Group students to complete 1 and 2.", "Check in and share.", "Complete 3 as a class.", "Share and summarize: A graph's axes' labels, points, and whether the points form line segments or a curve provide insight into the situation it models." ] } },
-        { "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Reflect", "activity_number": null, "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Challenge Opportunity", "subtitle": "<strong>Action & Expression: Expression & Communication</strong>", "text": "Have students create two graphs, one with the <em>y</em>-axis labeled as the distance from home and the other with the <em>y</em>-axis labeled distance from school. Then, have them compare the characteristics of the graphs." } },
-        { "feature_type": "purposeful_questions", "feature_title": "Purposeful Questions", "block": "Reflect", "feature_data": { "data_type": "question_set_list", "items": [
-              { "activity_number": null, "item_numbers": "1", "student_page_number": "7", "question_type": "Probing", "questions": [ "How did you inform the reader about the pace?", "Could more than one possible graph model your situation? Explain." ] },
-              { "activity_number": null, "item_numbers": "2", "student_page_number": "7", "question_type": "Probing", "questions": [ "How did you use the axes' labels and scales to support your response? How did you know the graph is a straight line?" ] },
-              { "activity_number": null, "item_numbers": "3", "student_page_number": "7", "question_type": "Seeing Structure", "questions": [ "Is your graph increasing or decreasing? Why?", "What type of situation would create a curved graph?" ] }
+        { "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Reflect", "activity_number": null, "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Challenge Opportunity", "text": "<p><strong><em>Action & Expression: Expression & Communication</em></strong></p><p>Have students create two graphs, one with the <em>y</em>-axis labeled as the distance from home and the other with the <em>y</em>-axis labeled distance from school. Then, have them compare the characteristics of the graphs.</p>" } },
+        { "feature_type": "purposeful_questions", "feature_title": "Purposeful Questions", "block": "Reflect", "feature_content_type": "html", "feature_data": { "data_type": "question_set_list", "items": [
+              { "activity_number": null, "item_numbers": "<span class=\"question-number\">1</span>", "student_page_number": "7", "question_type": "Probing", "questions": [ "How did you inform the reader about the pace?", "Could more than one possible graph model your situation? Explain." ] },
+              { "activity_number": null, "item_numbers": "<span class=\"question-number\">2</span>", "student_page_number": "7", "question_type": "Probing", "questions": [ "How did you use the axes' labels and scales to support your response? How did you know the graph is a straight line?" ] },
+              { "activity_number": null, "item_numbers": "<span class=\"question-number\">3</span>", "student_page_number": "7", "question_type": "Seeing Structure", "questions": [ "Is your graph increasing or decreasing? Why?", "What type of situation would create a curved graph?" ] }
             ] } },
         { "feature_type": "session_close", "feature_title": "Session Close", "feature_data": { "data_type": "rich_text", "content": "Go online to access the Quick Check." } },
         { "feature_type": "practice_and_apply", "feature_title": "Practice And Apply", "feature_content_type": "html", "feature_data": { "data_type": "rich_text", "content": "<h3>Assignment Suggestions</h3><ul><li>Practice</li><li>Journal</li><li>Stretch (advanced learners)</li></ul><h3>Skills Practice Suggestions</h3><ul><li>Assign this problem set, as needed, to support students' skill development.</li><li><strong>Activity 1, What Comes First?</strong><ul><li>Problem Set 1: Identifying Independent and Dependent Quantities</li></ul></li></ul>" } }
