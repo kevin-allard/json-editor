@@ -9,8 +9,6 @@
     <!-- Load prerequisite scripts first -->
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    
-    <!-- NEW: Load the Formula Plugin and its dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/plugin.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
@@ -70,7 +68,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => {
+            function bootstrap() {
                 const mainContent = document.getElementById('editor-main-content');
                 if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) {
                     mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`; return;
@@ -81,7 +79,7 @@
                 script.onload = () => { console.log("TinyMCE loaded successfully."); runApp(); };
                 script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
                 document.head.appendChild(script);
-            };
+            }
 
             function runApp() {
                 let currentLessonData = null; let manifestData = []; let activeEditor = null;
