@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.24 -->
+<!-- Editor Version: rc1.beta.0.25 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -42,7 +41,7 @@
         .feature-content { padding: 24px; }
         .form-field { margin-bottom: 20px; }
         .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
-        .form-field input[type="text"], .form-field textarea { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
+        .form-field input[type="text"] { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
@@ -59,7 +58,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.24</span>
+                <span class="version-tag">v. rc1.beta.0.25</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -68,7 +67,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            function bootstrap() {
+            const bootstrap = () => {
                 const mainContent = document.getElementById('editor-main-content');
                 if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) {
                     mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`; return;
@@ -79,7 +78,7 @@
                 script.onload = () => { console.log("TinyMCE loaded successfully."); runApp(); };
                 script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
                 document.head.appendChild(script);
-            }
+            };
 
             function runApp() {
                 let currentLessonData = null; let manifestData = []; let activeEditor = null;
@@ -109,7 +108,7 @@
                         }
                         const featurePath = container.closest('.feature-card').getAttribute('data-path');
                         const feature = getNestedProperty(currentLessonData, featurePath);
-                        editor.remove(); // Use remove() which also cleans up the DOM element
+                        editor.remove();
                         container.innerHTML = renderFeatureContent(feature, featurePath);
                         activeEditor = null;
                     }
@@ -126,10 +125,10 @@
                     const isList = target.getAttribute('data-type') === 'list';
                     const content = target.innerHTML;
                     
-                    target.innerHTML = ''; // Clear the div first
                     const textarea = document.createElement('textarea');
                     textarea.id = `editor-${path.replace(/[.\[\]]/g, '-')}`;
                     textarea.value = content;
+                    target.innerHTML = '';
                     target.appendChild(textarea);
                     
                     const newEditorConfig = {
@@ -185,11 +184,11 @@
                         case 'titled_intro_with_list': const titledListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div><div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, titledListTag)}</div>`;
                         case 'intro_with_list': const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
                         case 'rich_text': if (feature.feature_type === 'learning_prompt') { return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div><div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`; } else { return createEditableDiv(`${path}.feature_data.content`); }
-                        case 'intro_with_structured_list': return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea class="full-width-editor" rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
+                        case 'intro_with_structured_list': return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea class="full-width-editor autosize" rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
                         case 'session_list': let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); return tableHtml += `</tbody></table>`;
-                        case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea class="full-width-editor" rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
+                        case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea class="full-width-editor autosize" rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         case 'differentiation_strategy': return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
-                        case 'ongoing_assessment': return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                        case 'ongoing_assessment': return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`, true, 'ul')}</div>`;
                         case 'question_set_list': return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
                         default: return `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
                     }
