@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.22 -->
+<!-- Editor Version: rc1.beta.0.23 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,7 +59,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.22</span>
+                <span class="version-tag">v. rc1.beta.0.23</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -82,9 +82,8 @@
             };
 
             function runApp() {
-                let currentLessonData = null; let manifestData = []; let activeEditorPath = null;
-                const mainContent = document.getElementById('editor-main-content');
-                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const saveButton = document.getElementById('save-button');
+                let currentLessonData = null; let manifestData = []; let activeEditor = null;
+                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const mainContent = document.getElementById('editor-main-content'); const saveButton = document.getElementById('save-button');
                 
                 function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
                 function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
@@ -96,57 +95,63 @@
                 async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`; } }
                 
                 function destroyActiveEditor(saveContent = true) {
-                    if (activeEditorPath) {
-                        const editor = tinymce.get(activeEditorPath);
-                        const container = document.querySelector(`[data-path="${activeEditorPath}"]`).parentElement;
-                        
-                        if (editor) {
-                            if (saveContent) {
-                                const isList = editor.settings.plugins.includes('lists') && !editor.settings.menubar;
-                                if (isList) {
-                                    const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
-                                    const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML);
-                                    setNestedProperty(currentLessonData, activeEditorPath, items);
-                                } else {
-                                    setNestedProperty(currentLessonData, activeEditorPath, editor.getContent());
-                                }
+                    if (activeEditor) {
+                        const { editor, container, path, isList } = activeEditor;
+                        if (saveContent) {
+                            if (isList) {
+                                const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
+                                const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML);
+                                setNestedProperty(currentLessonData, path, items);
+                            } else {
+                                setNestedProperty(currentLessonData, path, editor.getContent());
                             }
-                            editor.remove();
                         }
-                        
-                        if (container) {
-                            const featurePath = container.closest('.feature-card').getAttribute('data-path');
-                            const feature = getNestedProperty(currentLessonData, featurePath);
-                            container.innerHTML = renderFeatureContent(feature, featurePath);
-                        }
-                        activeEditorPath = null;
+                        const featurePath = container.closest('.feature-card').getAttribute('data-path');
+                        const feature = getNestedProperty(currentLessonData, featurePath);
+                        container.innerHTML = renderFeatureContent(feature, featurePath);
+                        editor.remove();
+                        activeEditor = null;
                     }
                 }
 
                 function handleContentClick(e) {
                     const target = e.target.closest('.editable-content');
                     if (!target) return;
-                    
                     const path = target.getAttribute('data-path');
-                    if (activeEditorPath === path) return;
+                    if (activeEditor && activeEditor.path === path) return;
                     
                     destroyActiveEditor();
 
-                    activeEditorPath = path;
                     const isList = target.getAttribute('data-type') === 'list';
                     const content = target.innerHTML;
                     
-                    target.innerHTML = `<textarea id="${path}">${content}</textarea>`;
+                    const textarea = document.createElement('textarea');
+                    textarea.id = `editor-${path}`; // Unique ID for the editor instance
+                    textarea.value = content;
+                    target.innerHTML = '';
+                    target.appendChild(textarea);
                     
+                    const newEditorConfig = {
+                        target: textarea,
+                        plugins: 'lists link image code help wordcount autoresize formula',
+                        toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help',
+                        menubar: true, min_height: 150, max_height: 600, autoresize_bottom_margin: 24,
+                        setup: (editor) => {
+                            editor.on('init', () => editor.focus());
+                            activeEditor = { editor, container: target, path, isList };
+                        }
+                    };
+
                     if (isList) {
-                        initializeListEditor(document.getElementById(path));
-                    } else {
-                        initializeSingleEditor(document.getElementById(path));
+                        newEditorConfig.menubar = false;
+                        newEditorConfig.toolbar = 'undo redo | bold italic formula | bullist numlist | code | help';
                     }
+                    
+                    tinymce.init(newEditorConfig);
                 }
                 
                 function renderEditor() {
-                    destroyActiveEditor(false);
+                    destroyActiveEditor(false); 
                     let html = ``;
                     html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
@@ -189,10 +194,8 @@
                     }
                 }
                 
-                function initializeSingleEditor(textarea) { const path = textarea.id; tinymce.init({ target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, max_height: 600, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); } }); }
-                function initializeListEditor(textarea) { const path = textarea.id; tinymce.init({ target: textarea, plugins: 'lists code help wordcount autoresize formula', toolbar: 'undo redo | bold italic formula | bullist numlist | code | help', menubar: false, min_height: 150, max_height: 600, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); } }); }
                 function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { destroyActiveEditor(); const path = evt.target.getAttribute('data-path'); let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
-                function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); mainContent.addEventListener('click', handleContentClick); document.body.addEventListener('click', (e) => { if (!e.target.closest('.feature-content') && !e.target.closest('.tox')) { destroyActiveEditor(); } }, true); }
+                function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); mainContent.addEventListener('click', handleContentClick); document.body.addEventListener('click', (e) => { if (!e.target.closest('.feature-card') && !e.target.closest('.tox')) { destroyActiveEditor(); } }, true); }
                 function handleInputChange(e) { if (e.target.matches('[data-path]')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
                 function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } }
                 function saveChanges() { destroyActiveEditor(); console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
