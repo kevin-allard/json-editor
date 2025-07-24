@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Content Editor</title>
     
+    <!-- Load prerequisite scripts first -->
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -13,6 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
+        /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -40,7 +42,7 @@
         .feature-content, .student-card-content { padding: 24px; }
         .form-field { margin-bottom: 20px; }
         .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
-        .form-field input[type="text"], .form-field textarea { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
+        .form-field input[type="text"] { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
@@ -48,23 +50,7 @@
         svg { width: 20px; height: 20px; vertical-align: middle; }
         .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
-        .tox-tinymce, .full-width-editor {
-            margin-left: -24px !important;
-            margin-right: -24px !important;
-            width: calc(100% + 48px) !important;
-            border-left: none !important;
-            border-right: none !important;
-            border-radius: 0 !important;
-        }
-        textarea.full-width-editor {
-            padding: 12px 24px !important;
-            border-top: 1px solid var(--md-border-color) !important;
-            border-bottom: 1px solid var(--md-border-color) !important;
-            resize: none;
-            overflow: hidden;
-            font-family: 'Roboto', sans-serif;
-            font-size: 14px;
-        }
+        .tox-tinymce { border-top: 1px solid var(--md-border-color) !important; border-bottom: 1px solid var(--md-border-color) !important; margin-left: -24px; width: calc(100% + 48px); }
     </style>
 </head>
 <body>
@@ -82,19 +68,68 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => { /* ... unchanged ... */ };
+            const bootstrap = () => {
+                const mainContent = document.getElementById('editor-main-content');
+                if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`; return; }
+                const script = document.createElement('script');
+                script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
+                script.referrerPolicy = 'origin';
+                script.onload = () => { console.log("TinyMCE loaded successfully."); runApp(); };
+                script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
+                document.head.appendChild(script);
+            };
 
             function runApp() {
                 let currentLessonData = null; let manifestData = []; let activeEditor = null;
                 const mainContent = document.getElementById('editor-main-content');
-                // ... other variable declarations are unchanged ...
+                const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const saveButton = document.getElementById('save-button');
                 
-                function getNestedProperty(obj, path) { /* ... */ }
-                function setNestedProperty(obj, path, value) { /* ... */ }
-                async function init() { /* ... */ }
-                // ... all core logic functions are unchanged ...
-                function destroyActiveEditor(saveContent = true) { /* ... unchanged ... */ }
-                function handleContentClick(e) { /* ... unchanged ... */ }
+                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
+                
+                async function init() { try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest file not found."); manifestData = await response.json(); populateCourseSelector(); courseSelector.addEventListener('change', handleCourseChange); lessonSelector.addEventListener('change', handleLessonChange); saveButton.addEventListener('click', saveChanges); await handleCourseChange(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Could not load manifest.json. ${error.message}</div>`; } }
+                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
+                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+                async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch lesson file at ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error loading lesson: ${error.message}</div>`; } }
+                
+                function destroyActiveEditor(saveContent = true) {
+                    if (activeEditor) {
+                        const { editor, container, path, isList } = activeEditor;
+                        if (saveContent) {
+                            if (isList) {
+                                const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
+                                const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML);
+                                setNestedProperty(currentLessonData, path, items);
+                            } else {
+                                setNestedProperty(currentLessonData, path, editor.getContent());
+                            }
+                        }
+                        const featurePath = container.closest('.feature-card, .student-card').getAttribute('data-path');
+                        const feature = getNestedProperty(currentLessonData, featurePath);
+                        editor.remove();
+                        container.innerHTML = feature ? renderFeatureContent(feature, featurePath) : renderStudentContentItem(getNestedProperty(currentLessonData, featurePath), featurePath);
+                        activeEditor = null;
+                    }
+                }
+
+                function handleContentClick(e) {
+                    const target = e.target.closest('.editable-content');
+                    if (!target) return;
+                    const path = target.getAttribute('data-path');
+                    if (activeEditor && activeEditor.path === path) return;
+                    destroyActiveEditor();
+                    const isList = target.getAttribute('data-type') === 'list';
+                    const content = target.innerHTML;
+                    const textarea = document.createElement('textarea');
+                    textarea.id = `editor-${path.replace(/[.\[\]]/g, '-')}`;
+                    textarea.value = content;
+                    target.innerHTML = '';
+                    target.appendChild(textarea);
+                    const newEditorConfig = { target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, max_height: 600, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); activeEditor = { editor, container: target, path, isList }; } };
+                    if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic formula | bullist numlist | code | help'; }
+                    tinymce.init(newEditorConfig);
+                }
                 
                 function renderEditor() {
                     destroyActiveEditor(false); 
@@ -103,7 +138,7 @@
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
                     html += `</div>`;
                     
-                    if (currentLessonData.lesson_support_sessions) {
+                    if (currentLessonData.lesson_support_sessions) { // This is a TIG file
                         (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => {
                             html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
                             const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
@@ -116,7 +151,7 @@
                                 }
                             });
                         });
-                    } else if (currentLessonData.lesson_content_sessions) {
+                    } else if (currentLessonData.lesson_content_sessions) { // This is an SRB file
                         (currentLessonData.lesson_content_sessions || []).forEach((session, sessionIndex) => {
                              html += `<h2 class="section-header">Lesson Content: Session ${session.session}</h2>`;
                              (session.blocks || []).forEach((block, blockIndex) => {
@@ -131,18 +166,33 @@
                     attachEventListeners();
                 }
 
-                function renderStudentBlock(block, path) { /* ... unchanged ... */ }
-                function renderStudentContentItem(item, path) { /* ... unchanged ... */ }
-
-                function renderFeature(feature, path) {
-                    const contentHtml = renderFeatureContent(feature, path);
-                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`;
+                function renderStudentBlock(block, path) {
+                    let contentHtml = (block.block_content || []).map((item, i) => renderStudentContentItem(item, `${path}.block_content[${i}]`)).join('');
+                    (block.activities || []).forEach((activity, actIndex) => {
+                        contentHtml += `<div class="structured-list-item"><h4>Activity ${activity.activity_number}: ${activity.activity_title}</h4>`;
+                        contentHtml += (activity.activity_content || []).map((item, i) => renderStudentContentItem(item, `${path}.activities[${actIndex}].activity_content[${i}]`)).join('');
+                        contentHtml += `</div>`;
+                    });
+                    return `<div class="block-group"><div class="block-group-header">${block.block_title}</div><div class="block-group-content">${contentHtml}</div></div>`;
                 }
-                
+
+                function renderStudentContentItem(item, path) {
+                    let content = '';
+                    const createEditableDiv = (contentPath) => `<div class="editable-content" data-path="${contentPath}" data-type="single">${getNestedProperty(currentLessonData, contentPath) || ''}</div>`;
+                    switch(item.type) {
+                        case 'rich_text': case 'directions': case 'conversation_prompt': content = `<div class="form-field"><label>${item.title || item.type.replace(/_/g, ' ')}</label>${createEditableDiv(`${path}.content`)}</div>`; break;
+                        case 'problem': content = `<div class="structured-list-item"><h5>Problem ${item.problem_number}: ${item.title || ''}</h5>${(item.content_blocks || []).map((cb, i) => renderStudentContentItem(cb, `${path}.content_blocks[${i}]`)).join('')}</div>`; break;
+                        case 'answer': content = `<div style="border-left: 4px solid #ff00ff; padding-left: 16px; margin-left: -16px;"><label>Answer</label>${(item.content_blocks || []).map((cb, i) => renderStudentContentItem(cb, `${path}.content_blocks[${i}]`)).join('')}</div>`; break;
+                        case 'paragraph': content = createEditableDiv(`${path}.content`); break;
+                        default: content = `<p>Read-only type: ${item.type}</p>`;
+                    }
+                    return `<div class="student-card" data-path="${path}">${content}</div>`;
+                }
+
+                function renderFeature(feature, path) { const contentHtml = renderFeatureContent(feature, path); return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`; }
                 function renderFeatureContent(feature, path) {
                     const dataType = feature.feature_data.data_type;
                     const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => { let content = getNestedProperty(currentLessonData, contentPath); if (isList) content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`; };
-                    
                     switch (dataType) {
                         case 'list': case 'rich_text_list': const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul'; return createEditableDiv(`${path}.feature_data.items`, true, listTag);
                         case 'titled_intro_with_list': const titledListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div><div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, titledListTag)}</div>`;
@@ -152,13 +202,17 @@
                         case 'session_list': let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); return tableHtml += `</tbody></table>`;
                         case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea class="full-width-editor autosize" rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         case 'differentiation_strategy': return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
-                        case 'ongoing_assessment': return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                        case 'ongoing_assessment': return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`, true, 'ul')}</div>`;
                         case 'question_set_list': return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
                         default: return `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
                     }
                 }
                 
-                // ... all other functions are unchanged ...
+                function initializeSortable() { const lists = document.querySelectorAll('.sortable-list'); lists.forEach(listEl => { new Sortable(listEl, { handle: '.drag-handle', animation: 150, onEnd: (evt) => { destroyActiveEditor(); const path = evt.target.getAttribute('data-path'); let parentArray = getNestedProperty(currentLessonData, path); const [movedItem] = parentArray.splice(evt.oldIndex, 1); parentArray.splice(evt.newIndex, 0, movedItem); renderEditor(); } }); }); }
+                function attachEventListeners() { mainContent.addEventListener('change', handleInputChange); mainContent.addEventListener('click', handleButtonClick); mainContent.addEventListener('click', handleContentClick); document.body.addEventListener('click', (e) => { if (!e.target.closest('.feature-card') && !e.target.closest('.tox')) { destroyActiveEditor(); } }, true); }
+                function handleInputChange(e) { if (e.target.matches('[data-path]')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
+                function handleButtonClick(e) { const target = e.target.closest('button'); if (!target) return; if (target.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this feature?')) { const card = target.closest('.feature-card'); const path = card.getAttribute('data-path'); const parentPath = path.substring(0, path.lastIndexOf('[')); const index = parseInt(path.substring(path.lastIndexOf('[') + 1, path.lastIndexOf(']'))); let parentArray = getNestedProperty(currentLessonData, parentPath); parentArray.splice(index, 1); renderEditor(); } } }
+                function saveChanges() { destroyActiveEditor(); console.log("--- SAVING CHANGES ---"); console.log(JSON.stringify(currentLessonData, null, 2)); alert("Lesson data saved to the browser console (Press F12 to view)."); }
                 
                 init();
             }
