@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Content Editor</title>
     
+    <!-- Load prerequisite scripts first -->
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -13,6 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
+        /* CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -66,7 +68,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => {
+            function bootstrap() {
                 const mainContent = document.getElementById('editor-main-content');
                 if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found in config.js.</div>`; return; }
                 const script = document.createElement('script');
@@ -75,7 +77,7 @@
                 script.onload = () => { console.log("TinyMCE loaded successfully."); runApp(); };
                 script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
                 document.head.appendChild(script);
-            };
+            }
 
             function runApp() {
                 let currentLessonData = null; let manifestData = []; let activeEditor = null;
@@ -152,10 +154,7 @@
                     attachEventListeners();
                 }
 
-                function renderFeature(feature, path) {
-                    const contentHtml = renderFeatureContent(feature, path);
-                    return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`;
-                }
+                function renderFeature(feature, path) { const contentHtml = renderFeatureContent(feature, path); return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`; }
                 
                 function renderFeatureContent(feature, path) {
                     const dataType = feature.feature_data.data_type;
