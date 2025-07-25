@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.28 -->
+<!-- Editor Version: rc1.beta.0.29 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +36,6 @@
         .block-group-content { padding: 8px 24px 24px 24px; }
         .feature-card { background-color: var(--md-bg-card); border-radius: 4px; margin-bottom: 20px; box-shadow: var(--md-elevation-1); }
         .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
-        .feature-header .drag-handle { cursor: grab; margin-right: 16px; color: var(--md-text-secondary); font-size: 24px; line-height: 1; }
         .feature-header h3 { margin: 0; font-size: 18px; font-weight: 500; flex-grow: 1; }
         .feature-header .feature-type-badge { font-size: 12px; color: var(--md-primary-color); background-color: #e8eaf6; padding: 4px 8px; border-radius: 12px; font-family: monospace; }
         .feature-content { padding: 24px; }
@@ -47,18 +46,18 @@
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
         th { font-weight: 500; color: var(--md-text-secondary); }
-        svg { width: 20px; height: 20px; vertical-align: middle; }
         .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
-        .tox-tinymce, .full-width-editor {
-            margin-left: -24px !important; margin-right: -24px !important;
-            width: calc(100% + 48px) !important;
+        .tox-tinymce {
             border-left: none !important; border-right: none !important; border-radius: 0 !important;
         }
-        textarea.full-width-editor {
-            padding: 12px 24px !important; border-top: 1px solid var(--md-border-color) !important;
-            border-bottom: 1px solid var(--md-border-color) !important;
-            resize: none; overflow: hidden; font-family: 'Roboto', sans-serif; font-size: 14px;
+        .activity-header-card {
+            padding: 16px; background-color: #e8eaf6; color: var(--md-primary-color);
+            font-size: 20px; font-weight: 700; border-radius: 4px; margin-bottom: 20px;
+        }
+        .static-header-card {
+            padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary);
+            border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px;
         }
     </style>
 </head>
@@ -68,7 +67,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.28</span>
+                <span class="version-tag">v. rc1.beta.0.29</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -114,20 +113,23 @@
                                 setNestedProperty(currentLessonData, path, editor.getContent());
                             }
                         }
-                        const featurePath = container.closest('.feature-card, .student-card').getAttribute('data-path');
+                        const featurePath = container.closest('.feature-card').getAttribute('data-path');
                         const feature = getNestedProperty(currentLessonData, featurePath);
                         editor.remove();
-                        container.innerHTML = feature ? renderFeatureContent(feature, featurePath) : renderStudentContentItem(getNestedProperty(currentLessonData, featurePath), featurePath);
+                        // Re-render the specific feature's content area
+                        const contentArea = container.closest('.feature-content');
+                        if (contentArea) {
+                            contentArea.innerHTML = renderFeatureContent(feature, featurePath);
+                        }
                         activeEditor = null;
                     }
                 }
 
                 function handleContentClick(e) {
                     const target = e.target.closest('.editable-content');
-                    if (!target) return;
-                    const path = target.getAttribute('data-path');
-                    if (activeEditor && activeEditor.path === path) return;
+                    if (!target || (activeEditor && activeEditor.container === target)) return;
                     destroyActiveEditor();
+                    const path = target.getAttribute('data-path');
                     const isList = target.getAttribute('data-type') === 'list';
                     const content = target.innerHTML;
                     const textarea = document.createElement('textarea');
@@ -146,53 +148,107 @@
                     html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
                     html += `</div>`;
-                    if (currentLessonData.lesson_support_sessions) { (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => { html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`; const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {}); const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General']; blockOrder.forEach(blockName => { if (blocks[blockName]) { html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content sortable-list" data-path="lesson_support_sessions[${sessionIndex}].support_items">`; blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); html += renderFeature(feature, `lesson_support_sessions[${sessionIndex}].support_items[${originalIndex}]`); }); html += `</div></div>`; } }); }); }
-                    else if (currentLessonData.lesson_content_sessions) { (currentLessonData.lesson_content_sessions || []).forEach((session, sessionIndex) => { html += `<h2 class="section-header">Lesson Content: Session ${session.session}</h2>`; (session.blocks || []).forEach((block, blockIndex) => { const path = `lesson_content_sessions[${sessionIndex}].blocks[${blockIndex}]`; html += renderStudentBlock(block, path); }); }); }
+                    
+                    // UNIFIED RENDER LOGIC
+                    if (currentLessonData.lesson_support_sessions) { // TIG file
+                        (currentLessonData.lesson_support_sessions || []).forEach((session, sessionIndex) => {
+                            html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
+                            const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
+                            const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
+                            blockOrder.forEach(blockName => {
+                                if (blocks[blockName]) {
+                                    html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content sortable-list" data-path="lesson_support_sessions[${sessionIndex}].support_items">`;
+                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); html += renderFeature(feature, `lesson_support_sessions[${sessionIndex}].support_items[${originalIndex}]`); });
+                                    html += `</div></div>`;
+                                }
+                            });
+                        });
+                    } else if (currentLessonData.lesson_content_sessions) { // SRB file (uses new feature-based structure)
+                        (currentLessonData.lesson_content_sessions || []).forEach((session, sessionIndex) => {
+                            html += `<h2 class="section-header">Lesson Content: Session ${session.session}</h2>`;
+                            html += `<div class="block-group-content sortable-list" data-path="lesson_content_sessions[${sessionIndex}].features">`;
+                            (session.features || []).forEach((feature, featureIndex) => {
+                                html += renderFeature(feature, `lesson_content_sessions[${sessionIndex}].features[${featureIndex}]`);
+                            });
+                            html += `</div>`;
+                        });
+                    }
+
                     mainContent.innerHTML = html;
+                    mainContent.addEventListener('click', handleContentClick);
                     initializeSortable();
-                    attachEventListeners();
+                    attachEventListeners(); // For input fields, etc.
                 }
                 
-                function renderStudentBlock(block, path) {
-                    let contentHtml = (block.block_content || []).map((item, i) => renderStudentContentItem(item, `${path}.block_content[${i}]`)).join('');
-                    (block.activities || []).forEach((activity, actIndex) => {
-                        contentHtml += `<div class="feature-card"><div class="feature-header"><h3>Activity ${activity.activity_number}: ${activity.activity_title}</h3></div><div class="feature-content">${(activity.activity_content || []).map((item, i) => renderStudentContentItem(item, `${path}.activities[${actIndex}].activity_content[${i}]`)).join('')}</div></div>`;
-                    });
-                    return `<div class="block-group"><div class="block-group-header">${block.block_title}</div><div class="block-group-content">${contentHtml}</div></div>`;
-                }
-                function renderStudentContentItem(item, path) {
-                    const createEditableDiv = (contentPath) => `<div class="editable-content" data-path="${contentPath}" data-type="single">${getNestedProperty(currentLessonData, contentPath) || ''}</div>`;
-                    switch(item.type) {
-                        case 'rich_text': case 'directions': case 'conversation_prompt': return `<div class="student-card" data-path="${path}"><div class="form-field"><label>${item.title || item.type.replace(/_/g, ' ')}</label>${createEditableDiv(`${path}.content`)}</div></div>`;
-                        case 'problem': return `<div class="student-card" data-path="${path}"><div class="feature-card"><h5>Problem ${item.problem_number}: ${item.title || ''}</h5>${(item.content_blocks || []).map((cb, i) => renderStudentContentItem(cb, `${path}.content_blocks[${i}]`)).join('')}</div></div>`;
-                        case 'answer': return `<div class="student-card" data-path="${path}" style="border-left: 4px solid #ff00ff; padding-left: 16px; margin: 16px 0;"><label>Answer</label>${(item.content_blocks || []).map((cb, i) => renderStudentContentItem(cb, `${path}.content_blocks[${i}]`)).join('')}</div>`;
-                        case 'paragraph': return `<div class="student-card" data-path="${path}">${createEditableDiv(`${path}.content`)}</div>`;
-                        default: return `<p>Read-only type: ${item.type}</p>`;
+                function renderFeature(feature, path) {
+                    // Special non-card rendering for simple headers
+                    if (feature.feature_type === 'activity_header') {
+                        return `<div class="activity-header-card" data-path="${path}">Activity ${feature.feature_data.activity_number}: ${feature.feature_title}</div>`;
                     }
+                    if (feature.feature_type === 'block_header') {
+                        return `<div class="static-header-card" data-path="${path}">${feature.feature_title}</div>`;
+                    }
+                    
+                    const contentHtml = renderFeatureContent(feature, path);
+                    return `<div class="feature-card" data-path="${path}">
+                                <div class="feature-header">
+                                    <input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500; flex-grow:1;" />
+                                    <span class="feature-type-badge">${feature.feature_type}</span>
+                                </div>
+                                <div class="feature-content">${contentHtml}</div>
+                            </div>`;
                 }
-                function renderFeature(feature, path) { const contentHtml = renderFeatureContent(feature, path); return `<div class="feature-card" data-path="${path}"><div class="feature-header"><span class="drag-handle">☰</span><div class="form-field" style="flex-grow:1; margin:0;"><label style="font-size:10px; color:#999;">Feature Title</label><input type="text" value="${feature.feature_title}" data-path="${path}.feature_title" style="border:0; background:transparent; padding:0; font-size:16px; font-weight:500;" /></div><span class="feature-type-badge">${feature.feature_type}</span><div class="feature-controls"><button class="delete-btn" title="Delete Feature"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div></div><div class="feature-content">${contentHtml}</div></div>`; }
+
                 function renderFeatureContent(feature, path) {
                     const dataType = feature.feature_data.data_type;
-                    const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => { let content = getNestedProperty(currentLessonData, contentPath); if (isList) content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`; };
+                    const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
+                        let content = getNestedProperty(currentLessonData, contentPath);
+                        if (feature.feature_content_type === 'html') {
+                            if (isList) content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
+                        } else { // Plain text handling
+                            if (isList) content = (content || []).join('\n');
+                            else content = content || '';
+                        }
+                        return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
+                    };
+
                     switch (dataType) {
-                        case 'list': case 'rich_text_list': const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul'; return createEditableDiv(`${path}.feature_data.items`, true, listTag);
-                        case 'titled_intro_with_list': const titledListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title"></div><div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, titledListTag)}</div>`;
+                        case 'list': case 'rich_text_list':
+                            const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr' || feature.feature_type === 'directions') ? 'ol' : 'ul';
+                            return createEditableDiv(`${path}.feature_data.items`, true, listTag);
+                        case 'rich_text':
+                            if (feature.feature_type === 'learning_prompt') {
+                                return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div>
+                                        <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`;
+                            } else {
+                                return createEditableDiv(`${path}.feature_data.content`);
+                            }
+                        case 'problem':
+                             const probData = feature.feature_data;
+                             return `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>
+                                     <div class="form-field"><label>Think About</label>${createEditableDiv(`${path}.feature_data.think_about`)}</div>
+                                     <div class="form-field"><label>Answer - Independent</label><input type="text" value="${probData.answer.independent}" data-path="${path}.feature_data.answer.independent" /></div>
+                                     <div class="form-field"><label>Answer - Dependent</label><input type="text" value="${probData.answer.dependent}" data-path="${path}.feature_data.answer.dependent" /></div>
+                                     <div class="form-field"><label>Answer - Origin</label><input type="text" value="${probData.answer.origin}" data-path="${path}.feature_data.answer.origin" /></div>`;
+                        // All other TIG-specific types...
                         case 'intro_with_list': const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
-                        case 'rich_text': if (feature.feature_type === 'learning_prompt') { return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div><div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`; } else { return createEditableDiv(`${path}.feature_data.content`); }
-                        case 'intro_with_structured_list': return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea class="full-width-editor autosize" rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
                         case 'session_list': let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); return tableHtml += `</tbody></table>`;
                         case 'detailed_activity_facilitation': const data = feature.feature_data; let promptHtml = ''; if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea class="full-width-editor autosize" rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         case 'differentiation_strategy': return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
                         case 'ongoing_assessment': return `<div class="form-field"><label>Introduction</label><input type="text" value="${feature.feature_data.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
                         case 'question_set_list': return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
-                        default: return `<p style="color:red;">Error: Unknown data_type: "${dataType}"</p>`;
+                        default: return ``; // Return empty for static headers
                     }
                 }
                 function initializeSortable() { /* ... unchanged ... */ }
-                function attachEventListeners() { /* ... unchanged ... */ }
-                function handleInputChange(e) { /* ... unchanged ... */ }
+                function attachEventListeners() { 
+                    mainContent.addEventListener('input', handleInputChange);
+                    mainContent.addEventListener('click', handleButtonClick);
+                }
+                function handleInputChange(e) { if (e.target.matches('input[type="text"], textarea')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
                 function handleButtonClick(e) { /* ... unchanged ... */ }
-                function saveChanges() { /* ... unchanged ... */ }
+                function saveChanges() { console.log(JSON.stringify(currentLessonData, null, 2)); alert("Data saved to console. Check developer tools."); }
+                
                 init();
             }
             bootstrap();
