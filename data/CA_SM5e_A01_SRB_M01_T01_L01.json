@@ -19,7 +19,7 @@
       "feature_type": "learning_goals",
       "feature_title": "My Learning Goals",
       "feature_data": {
-        "data_type": "list",
+        "data_type": "rich_text_list",
         "items": [
           "I can use a reasonable scale for a graph modeling a situation.",
           "I can identify the independent and dependent quantities for a situation.",
@@ -46,7 +46,9 @@
           "uuid": "explore-develop-header",
           "feature_type": "block_header",
           "feature_title": "Explore and Develop",
-          "feature_data": { "data_type": "static_header" }
+          "feature_data": {
+            "data_type": "static_header"
+          }
         },
         {
           "uuid": "stu-l1-activity1-mno5",
@@ -74,7 +76,6 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "rich_text_list",
-            "is_numbered": false,
             "items": [
               "Cut out the graphs provided by your teacher. Then, read each of the six situations in this activity.",
               "Determine the independent and dependent quantities.",
@@ -108,12 +109,8 @@
                 "content": "<p>Be sure to include the appropriate units of measure for each quantity.</p>"
             },
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Time (seconds)" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Jared’s height above the water (feet)" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 seconds, 0 feet above the water)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_e.svg", "alt_text": "A graph titled 'Graph E' showing a downward curving line, representing Jared's height above water versus time. The y-axis (height) goes from 0 to 100 feet, and the x-axis (time) goes from 0 to 2 seconds.", "caption": "Graph E" }
+                "content": "<p><strong>Independent quantity:</strong> Time (seconds)</p><p><strong>Dependent quantity:</strong> Jared’s height above the water (feet)</p><p><strong>Origin:</strong> (0 seconds, 0 feet above the water)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_e.svg", "alt_text": "A graph titled 'Graph E' showing a downward curving line.", "caption": "Graph E" }
             }
           }
         },
@@ -130,12 +127,8 @@
                 "content": "<p>What strategies will you use to match each graph with one of the six situations?</p>"
             },
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Time (minutes)" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Water (gallons)" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 minutes, 0 gallons of water)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_f.svg", "alt_text": "A graph titled 'Graph F' showing a straight line decreasing from 200 gallons to 0 over 10 minutes.", "caption": "Graph F" }
+                "content": "<p><strong>Independent quantity:</strong> Time (minutes)</p><p><strong>Dependent quantity:</strong> Water (gallons)</p><p><strong>Origin:</strong> (0 minutes, 0 gallons of water)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_f.svg", "alt_text": "A graph titled 'Graph F' showing a straight line decreasing.", "caption": "Graph F" }
             }
           }
         },
@@ -148,12 +141,8 @@
             "data_type": "problem",
             "content": "<p>You want an upgraded smartphone but lack the funds. Your cousin offers to lend you the money with interest, starting at $1 and doubling weekly. You wonder if it’s a good deal.</p>",
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Time (weeks)" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Interest (dollars)" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 weeks, 0 dollars of interest)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_b.svg", "alt_text": "A graph titled 'Graph B' showing an upward curving exponential line representing weekly interest.", "caption": "Graph B" }
+                "content": "<p><strong>Independent quantity:</strong> Time (weeks)</p><p><strong>Dependent quantity:</strong> Interest (dollars)</p><p><strong>Origin:</strong> (0 weeks, 0 dollars of interest)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_b.svg", "alt_text": "A graph titled 'Graph B' showing an upward curving exponential line.", "caption": "Graph B" }
             }
           }
         },
@@ -166,12 +155,8 @@
             "data_type": "problem",
             "content": "<p>Juniper, the Altadena High drum major, tosses her baton 22 feet high during the halftime finale, giving her 2 seconds to twirl twice and catch it.</p>",
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Time (seconds)" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Height of baton (feet)" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 seconds, height of 0 feet)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_d.svg", "alt_text": "A graph titled 'Graph D' showing a parabolic curve representing the height of a baton over time.", "caption": "Graph D" }
+                "content": "<p><strong>Independent quantity:</strong> Time (seconds)</p><p><strong>Dependent quantity:</strong> Height of baton (feet)</p><p><strong>Origin:</strong> (0 seconds, height of 0 feet)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_d.svg", "alt_text": "A graph titled 'Graph D' showing a parabolic curve.", "caption": "Graph D" }
             }
           }
         },
@@ -184,12 +169,8 @@
             "data_type": "problem",
             "content": "<p>The number of guests at a ski resort depends on the day’s high temperature. No one visits at -20°F or below. As temperatures rise, guests increase. At 0°F and above, attendance surges, reaching the 400-guest capacity at 10°F or higher.</p>",
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Temperature (°F)" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Number of guests" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 degrees Fahrenheit, 0 number of guests)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_a.svg", "alt_text": "A graph titled 'Graph A' showing the number of guests increasing with temperature, then plateauing.", "caption": "Graph A" }
+                "content": "<p><strong>Independent quantity:</strong> Temperature (°F)</p><p><strong>Dependent quantity:</strong> Number of guests</p><p><strong>Origin:</strong> (0 degrees Fahrenheit, 0 number of guests)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_a.svg", "alt_text": "A graph titled 'Graph A' showing guests increasing with temperature.", "caption": "Graph A" }
             }
           }
         },
@@ -202,18 +183,14 @@
             "data_type": "problem",
             "content": "<p>Mr. Vasquez judges the Jelly Bean Challenge at the summer fair, recording all possible guesses and how far each is from the actual count.</p>",
             "answer": {
-                "content_blocks": [
-                    { "type": "paragraph", "content": "<strong>Independent quantity:</strong> Number of jelly beans guessed" },
-                    { "type": "paragraph", "content": "<strong>Dependent quantity:</strong> Number of jelly beans the guess is off by" },
-                    { "type": "paragraph", "content": "<strong>Origin:</strong> (0 jelly beans guessed, 0 jelly beans the guess is off by)" }
-                ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_c.svg", "alt_text": "A graph titled 'Graph C' showing a V-shape, representing the error in a jelly bean guess.", "caption": "Graph C" }
+                "content": "<p><strong>Independent quantity:</strong> Number of jelly beans guessed</p><p><strong>Dependent quantity:</strong> Number of jelly beans the guess is off by</p><p><strong>Origin:</strong> (0 jelly beans guessed, 0 jelly beans the guess is off by)</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_c.svg", "alt_text": "A graph titled 'Graph C' showing a V-shape.", "caption": "Graph C" }
             }
           }
         },
         {
           "uuid": "prob-compare-graphs-qrs15",
-          "feature_type": "problem",
+          "feature_type": "problem_with_subproblems",
           "feature_title": "7. Compare the graphs for each pair of situations given.",
           "feature_content_type": "html",
           "feature_data": {
@@ -224,9 +201,9 @@
                 "content": "<p>Look closely when analyzing the graphs. What do you see?</p>"
             },
             "sub_problems": [
-              { "uuid": "subprob-smart-phone-cold-weather-qrs15a", "title": "a. Smart Phone, But Is It a Smart Deal? and Cold Weather", "answer": "<p><strong>Sample answers:</strong><br>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" },
-              { "uuid": "subprob-fishy-daredevil-qrs15b", "title": "b. Something’s Fishy and Daredevil", "answer": "<p><strong>Sample answers:</strong><br>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" },
-              { "uuid": "subprob-baton-jelly-bean-qrs15c", "title": "c. Baton Twirling and Jelly Bean Challenge", "answer": "<p><strong>Sample answers:</strong><br>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" }
+              { "uuid": "subprob-smart-phone-cold-weather-qrs15a", "title": "a. Smart Phone, But Is It a Smart Deal? and Cold Weather", "answer": { "content": "<p><strong>Sample answers:</strong><br>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" } },
+              { "uuid": "subprob-fishy-daredevil-qrs15b", "title": "b. Something’s Fishy and Daredevil", "answer": { "content": "<p><strong>Sample answers:</strong><br>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" } },
+              { "uuid": "subprob-baton-jelly-bean-qrs15c", "title": "c. Baton Twirling and Jelly Bean Challenge", "answer": { "content": "<p><strong>Sample answers:</strong><br>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" } }
             ]
           }
         },
@@ -240,44 +217,42 @@
           "uuid": "stu-l1-reflectact1-wxy17",
           "feature_type": "activity_header",
           "feature_title": "A Writer and a Mathematician",
-          "feature_data": {
-            "data_type": "activity_header"
-          }
+          "feature_data": { "data_type": "activity_header" }
         },
         {
           "uuid": "stu-l1-problem-1-18",
           "feature_type": "problem",
-          "feature_title": "1. ",
+          "feature_title": "1.",
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "problem",
             "content": "<p>Write a situation and sketch a graph to describe a possible trip to school.</p>",
             "answer": {
-                "content_blocks": [ { "type": "paragraph", "content": "<p><strong>Sample answer:</strong><br>I walk half a mile to school in 10 minutes. Then, I stop to talk to a friend and tie my shoes for 5 minutes. I walk the remaining half-mile to school in 10 minutes.</p>" } ],
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_reflect_graph.svg", "alt_text": "A graph showing distance traveled versus time for a trip to school, with three distinct line segments.", "caption": "Graph" }
+                "content": "<p><strong>Sample answer:</strong><br>I walk half a mile to school in 10 minutes. Then, I stop to talk to a friend and tie my shoes for 5 minutes. I walk the remaining half-mile to school in 10 minutes.</p>",
+                "image": { "image_id": "sm5e_a1_m01_t01_l01_reflect_graph.svg", "alt_text": "A graph showing distance traveled versus time.", "caption": "Graph" }
             }
           }
         },
         {
           "uuid": "stu-l1-problem-2-19",
           "feature_type": "problem",
-          "feature_title": "2. ",
+          "feature_title": "2.",
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "problem",
             "content": "<p>Describe the meaning of the points, or smooth curve, represented by your graph.</p>",
-            "answer": { "content_blocks": [ { "type": "paragraph", "content": "<p><strong>Sample answer:</strong><br>Each point on the graph represents possible times and the corresponding distances.</p>" } ] }
+            "answer": { "content": "<p><strong>Sample answer:</strong><br>Each point on the graph represents possible times and the corresponding distances.</p>" }
           }
         },
         {
           "uuid": "stu-l1-problem-3-20",
           "feature_type": "problem",
-          "feature_title": "3. ",
+          "feature_title": "3.",
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "problem",
             "content": "<p>Compare your situation and sketch with your classmates’ situations and sketches. What similarities do you notice? What differences do you notice?</p>",
-            "answer": { "content_blocks": [ { "type": "paragraph", "content": "Answers will vary." } ] }
+            "answer": { "content": "<p>Answers will vary.</p>" }
           }
         },
         {
@@ -290,9 +265,7 @@
             "uuid": "stu-l1-practiceact1-cde22",
             "feature_type": "activity_header",
             "feature_title": "Independent Practice",
-            "feature_data": {
-              "data_type": "activity_header"
-            }
+            "feature_data": { "data_type": "activity_header" }
         },
         {
             "uuid": "stu-l1-practice-directions-fgh23",
@@ -309,7 +282,7 @@
             "feature_type": "problem_set",
             "feature_title": "Problem Set",
             "feature_data": {
-                "data_type": "list",
+                "data_type": "rich_text_list",
                 "items": [
                     "Baila reads a 300-page book at a rate of 20 pages per hour.",
                     "A car wash business charges $15 per car for a basic wash.",
