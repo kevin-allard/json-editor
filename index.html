@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.31 -->
+<!-- Editor Version: rc1.beta.0.33 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,6 +44,7 @@
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
+        .read-only-content { min-height: 40px; padding: 12px; margin: -12px; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 2px solid transparent; }
         .static-header-card, .activity-header-card { padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
@@ -57,7 +58,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.31</span>
+                <span class="version-tag">v. rc1.beta.0.33</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -66,7 +67,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => {
+            const bootstrap = () => { /* Unchanged */
                 const mainContent = document.getElementById('editor-main-content');
                 if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found.</div>`; return; }
                 const script = document.createElement('script');
@@ -82,20 +83,18 @@
                 const mainContent = document.getElementById('editor-main-content');
                 const courseSelector = document.getElementById('course-selector'); const lessonSelector = document.getElementById('lesson-selector'); const saveButton = document.getElementById('save-button');
                 
-                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
-                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
+                function getNestedProperty(obj, path) { /* Unchanged */ return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+                function setNestedProperty(obj, path, value) { /* Unchanged */ const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
                 
-                async function init() { try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest not found."); manifestData = await response.json(); populateCourseSelector(); courseSelector.addEventListener('change', handleCourseChange); lessonSelector.addEventListener('change', handleLessonChange); saveButton.addEventListener('click', saveChanges); mainContent.addEventListener('click', handleContentClick); mainContent.addEventListener('input', handleInputChange); await handleCourseChange(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`; } }
-                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
-                function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
-                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
-                async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch: ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`; } }
+                async function init() { /* Unchanged */ try { const response = await fetch('manifest.json'); if (!response.ok) throw new Error("Manifest not found."); manifestData = await response.json(); populateCourseSelector(); courseSelector.addEventListener('change', handleCourseChange); lessonSelector.addEventListener('change', handleLessonChange); saveButton.addEventListener('click', saveChanges); mainContent.addEventListener('click', handleContentClick); mainContent.addEventListener('input', handleInputChange); await handleCourseChange(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`; } }
+                function populateCourseSelector() { /* Unchanged */ manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { /* Unchanged */ lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
+                async function handleCourseChange() { /* Unchanged */ populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+                async function handleLessonChange() { /* Unchanged */ const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch: ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`; } }
                 
-                function destroyActiveEditor(saveContent = true) {
+                function destroyActiveEditor(saveContent = true) { /* Unchanged - Using stable version */
                     if (!activeEditor) return;
-
                     const { editor, container, path, isList } = activeEditor;
-                    
                     if (saveContent) {
                         if (isList) {
                             const tempDiv = document.createElement('div');
@@ -107,7 +106,6 @@
                             setNestedProperty(currentLessonData, path, content);
                         }
                     }
-                    
                     const featureCard = container.closest('.feature-card');
                     if(featureCard) {
                         const featurePath = featureCard.getAttribute('data-path');
@@ -115,46 +113,36 @@
                         const contentArea = featureCard.querySelector('.feature-content');
                         if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath);
                     }
-                    
                     editor.remove();
                     activeEditor = null;
                 }
 
-                function handleContentClick(e) {
+                function handleContentClick(e) { /* Unchanged - Using stable version */
                     const target = e.target.closest('.editable-content');
                     if (!target) return;
                     if (activeEditor && activeEditor.container === target) return;
-
                     destroyActiveEditor(); 
-
                     const path = target.getAttribute('data-path');
                     const isList = target.getAttribute('data-type') === 'list';
                     const content = target.innerHTML;
-
                     target.innerHTML = '';
                     const textarea = document.createElement('textarea');
                     textarea.id = `editor-for-${path.replace(/[.\[\]]/g, '-')}`;
                     textarea.value = content;
                     target.appendChild(textarea);
-                    
                     const newEditorConfig = { target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); activeEditor = { editor, container: target, path, isList }; } };
                     if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic formula | bullist numlist | code | help'; }
                     tinymce.init(newEditorConfig);
                 }
 
-                function handleInputChange(e) {
-                    if (e.target.matches('input[type="text"], textarea')) {
-                        setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value);
-                    }
-                }
+                function handleInputChange(e) { /* Unchanged */ if (e.target.matches('input[type="text"], textarea')) { setNestedProperty(currentLessonData, e.target.getAttribute('data-path'), e.target.value); } }
                 
-                function renderEditor() {
+                function renderEditor() { /* Unchanged */
                     destroyActiveEditor(false); 
                     let html = ``;
                     html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
                     (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
                     html += `</div>`;
-                    
                     if (currentLessonData.lesson_support_sessions) { // TIG file
                         (currentLessonData.lesson_support_sessions || []).forEach((session, sIndex) => {
                             html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
@@ -176,17 +164,15 @@
                             html += `</div></div>`;
                         });
                     }
-
                     mainContent.innerHTML = html;
                 }
                 
-                function renderFeature(feature, path) {
+                function renderFeature(feature, path) { /* Unchanged */
                     if (feature.feature_data.data_type === 'static_header' || feature.feature_data.data_type === 'activity_header') {
                         let title = feature.feature_title;
                         if(feature.feature_data.activity_number) title = `Activity ${feature.feature_data.activity_number}: ${title}`;
                         return `<div class="static-header-card" data-path="${path}">${title}</div>`;
                     }
-                    
                     const contentHtml = renderFeatureContent(feature, path);
                     return `<div class="feature-card" data-path="${path}">
                                 <div class="feature-header"><h3>${feature.feature_title}</h3><span class="feature-type-badge">${feature.feature_type}</span></div>
@@ -198,9 +184,7 @@
                     const dataType = feature.feature_data.data_type;
                     const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
                         let content = getNestedProperty(currentLessonData, contentPath);
-                        if (isList) {
-                            content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
-                        }
+                        if (isList) { content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; }
                         return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
                     };
 
@@ -212,8 +196,20 @@
                         
                         case 'rich_text':
                             if (feature.feature_type === 'learning_prompt') {
-                                return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div>
-                                        <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`;
+                                // **NEW CORRECTED LOGIC**
+                                const isTig = currentLessonData.lesson_audience === 'tch';
+                                const question = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_question`);
+                                const answer = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_answer`);
+
+                                if (isTig) {
+                                    // In TIG: Question is read-only, Answer is editable
+                                    return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
+                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`;
+                                } else {
+                                    // In SRB: Question is editable, Answer is read-only
+                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div>
+                                            <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
+                                }
                             } else { return createEditableDiv(`${path}.feature_data.content`); }
 
                         case 'problem':
@@ -229,8 +225,8 @@
                                 subProbHtml += `<div class="form-field" style="margin-left: 2rem;"><label>${sub.title}</label>${createEditableDiv(`${path}.feature_data.sub_problems[${i}].answer.content`)}</div>`;
                             });
                             return subProbHtml;
-
-                        // RESTORED TIG-SPECIFIC RENDERERS
+                        
+                        // All other types restored from stable version
                         case 'session_list': 
                             let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
                             tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
@@ -261,7 +257,7 @@
                     }
                 }
 
-                function saveChanges() { console.log(JSON.stringify(currentLessonData, null, 2)); alert("Data saved to console. Check developer tools."); }
+                function saveChanges() { /* Unchanged */ console.log(JSON.stringify(currentLessonData, null, 2)); alert("Data saved to console. Check developer tools."); }
                 
                 init();
             }
