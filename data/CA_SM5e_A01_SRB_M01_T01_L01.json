@@ -56,7 +56,7 @@
       "feature_data": {
         "data_type": "rich_text",
         "prompt_question": "How can the key characteristics of a graph tell a story?",
-        "prompt_answer": ""
+        "prompt_answer": "When one quantity depends on another, it is a dependent quantity. The quantity it depends upon is the independent quantity. The independent quantity is represented on the <em>x</em>-axis, and the dependent quantity is represented on the <em>y</em>-axis."
       }
     }
   ],
