@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.33 -->
+<!-- Editor Version: rc1.beta.0.34 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +44,7 @@
         .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
         .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
-        .read-only-content { min-height: 40px; padding: 12px; margin: -12px; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 2px solid transparent; }
+        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
         .static-header-card, .activity-header-card { padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
@@ -58,7 +58,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.33</span>
+                <span class="version-tag">v. rc1.beta.0.34</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -196,21 +196,21 @@
                         
                         case 'rich_text':
                             if (feature.feature_type === 'learning_prompt') {
-                                // **NEW CORRECTED LOGIC**
                                 const isTig = currentLessonData.lesson_audience === 'tch';
                                 const question = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_question`);
                                 const answer = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_answer`);
-
                                 if (isTig) {
-                                    // In TIG: Question is read-only, Answer is editable
                                     return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
                                             <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`;
                                 } else {
-                                    // In SRB: Question is editable, Answer is read-only
                                     return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div>
                                             <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
                                 }
                             } else { return createEditableDiv(`${path}.feature_data.content`); }
+
+                        case 'prompt': // Handles the SRB activate block
+                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
+                                    <div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
 
                         case 'problem':
                              const probData = feature.feature_data;
@@ -226,7 +226,6 @@
                             });
                             return subProbHtml;
                         
-                        // All other types restored from stable version
                         case 'session_list': 
                             let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
                             tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
@@ -241,8 +240,19 @@
 
                         case 'detailed_activity_facilitation': 
                             const data = feature.feature_data; let promptHtml = ''; 
-                            if (data.activate_prompt) { promptHtml = `<div class="structured-list-item"><div class="form-field"><label>Activate Prompt Title</label><input type="text" value="${data.activate_prompt.title}" data-path="${path}.feature_data.activate_prompt.title" /></div><div class="form-field"><label>Activate Prompt Text</label><textarea rows="3" data-path="${path}.feature_data.activate_prompt.prompt_text">${data.activate_prompt.prompt_text}</textarea></div></div>`; } 
-                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div><div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div><div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>${promptHtml}<div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
+                            if (data.activate_prompt) {
+                                // **MODIFIED LOGIC HERE**
+                                promptHtml = `<div class="structured-list-item">
+                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${data.activate_prompt.title}</div></div>
+                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${data.activate_prompt.prompt_text}</div></div>
+                                            </div>`;
+                            } 
+                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${data.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
+                                    <div class="form-field"><label>Materials</label><input type="text" value="${data.materials || ''}" data-path="${path}.feature_data.materials" /></div>
+                                    <div class="form-field"><label>Driver of Investigation</label><input type="text" value="${data.driver_of_investigation || ''}" data-path="${path}.feature_data.driver_of_investigation" /></div>
+                                    <div class="form-field"><label>Mode</label><div class="read-only-content">${data.mode || 'N/A'}</div></div>
+                                    ${promptHtml}
+                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         
                         case 'differentiation_strategy': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
