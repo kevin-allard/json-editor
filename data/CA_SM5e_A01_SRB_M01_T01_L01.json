@@ -26,6 +26,38 @@
           "I can identify key characteristics of graphs."
         ]
       }
+    },
+    {
+      "uuid": "bi-func-invest-d4e5f6",
+      "feature_type": "big_ideas",
+      "feature_title": "Big Ideas",
+      "feature_data": {
+        "data_type": "list",
+        "items": [
+          "Function Investigations",
+          "Features of Functions"
+        ]
+      }
+    },
+    {
+      "uuid": "mc-analyzed-graphs-g7h8i9",
+      "feature_type": "make_a_connection",
+      "feature_title": "Make A Connection",
+      "feature_data": {
+        "data_type": "rich_text",
+        "content": "You have analyzed graphs of relationships and identified important features such as intercepts and slopes."
+      }
+    },
+    {
+      "uuid": "lp-graph-story-j0k1l2",
+      "feature_type": "learning_prompt",
+      "feature_title": "Learning Prompt",
+      "feature_content_type": "html",
+      "feature_data": {
+        "data_type": "rich_text",
+        "prompt_question": "How can the key characteristics of a graph tell a story?",
+        "prompt_answer": ""
+      }
     }
   ],
   "lesson_content_sessions": [
@@ -46,9 +78,7 @@
           "uuid": "explore-develop-header",
           "feature_type": "block_header",
           "feature_title": "Explore and Develop",
-          "feature_data": {
-            "data_type": "static_header"
-          }
+          "feature_data": { "data_type": "static_header" }
         },
         {
           "uuid": "stu-l1-activity1-mno5",
