@@ -67,11 +67,12 @@
         {
           "uuid": "stu-l1-activate-def2",
           "feature_type": "activate_block",
-          "feature_title": "Activate: What Comes First?",
+          "feature_title": "Activate",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "rich_text",
-            "content": "<p>Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates.</p>"
+            "data_type": "prompt",
+            "title": "What Comes First?",
+            "text": "<p>Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates.</p>"
           }
         },
         {

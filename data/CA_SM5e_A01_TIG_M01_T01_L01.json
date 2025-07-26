@@ -135,7 +135,31 @@
     {
       "session": 1,
       "support_items": [
-        { "uuid": "fn-activate-h4i5j6", "feature_type": "facilitation_notes", "feature_title": "Activate", "block": "Activate", "linked_student_uuid": "stu-l1-activate-def2", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": null, "duration_minutes": 5, "purpose": "To identify the independent and dependent quantities in given situations", "materials": null, "driver_of_investigation": null, "activate_prompt": { "title": "What Comes First?", "prompt_text": "Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates." }, "steps": [ "Display, read, and discuss the situation and quantity pairs.", "Use a Think-Pair-Share routine to discuss the activity.", "Share and summarize: When one quantity depends on another in a situation, it is the dependent quantity. The quantity it depends on is the independent quantity." ] } },
+        {
+          "uuid": "fn-activate-h4i5j6",
+          "feature_type": "facilitation_notes",
+          "feature_title": "Activate",
+          "block": "Activate",
+          "linked_student_uuid": "stu-l1-activate-def2",
+          "feature_data": {
+            "data_type": "detailed_activity_facilitation",
+            "activity_number": null,
+            "duration_minutes": 5,
+            "mode": "presentation",
+            "purpose": "To identify the independent and dependent quantities in given situations",
+            "materials": null,
+            "driver_of_investigation": null,
+            "activate_prompt": {
+              "title": "What Comes First?",
+              "prompt_text": "Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates."
+            },
+            "steps": [
+              "Display, read, and discuss the situation and quantity pairs.",
+              "Use a Think-Pair-Share routine to discuss the activity.",
+              "Share and summarize: When one quantity depends on another in a situation, it is the dependent quantity. The quantity it depends on is the independent quantity."
+            ]
+          }
+        },
         { "uuid": "fn-explore-k7l8m9", "feature_type": "facilitation_notes", "feature_title": "Explore and Develop", "block": "Explore and Develop", "linked_student_uuid": "stu-l1-activity1-mno5", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": "1", "duration_minutes": 25, "purpose": "To match graphs to situations and then compare and contrast the characteristics of the graphs", "materials": "Glue sticks or tape, Graphs of Situations Cutouts, scissors", "driver_of_investigation": "Make sense of the world.", "steps": [ "Read and discuss the introduction and directions.", "Group students to complete the activity.", "Share and summarize: To match a situation with its graph, you first need to identify the independent and dependent quantities to recognize the growth pattern. A graph's characteristics, such as whether it is a line or curve or increasing or decreasing, describe a relationship between two quantities." ] } },
         { "uuid": "ds-jit-n0p1q2", "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Just-in-Time Support", "text": "<p><strong><em>Engagement: Sustaining Effort & Persistence</em></strong></p><p>To make the task more manageable, split it into two parts. Provide Graphs B, E, and F for the first three situations and Graphs A, C, and D for the last three situations.</p>" } },
         { "uuid": "oa-observe-r3s4t5", "feature_type": "ongoing_assessment", "feature_title": "Ongoing Assessment", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "ongoing_assessment", "introduction_text": "Observe students as they match each situation to its graph.", "questions": [ "Are students using characteristics of the graphs to connect them to the situations?", "Are students using clues from the situations to determine the intervals?" ], "notes": "<p><strong>NOTE:</strong> This is the first pairing of these Habits of Mind:</p><ul><li><em>Model with mathematics.</em></li><li><em>Use appropriate tools strategically.</em></li></ul><p>Have students refer to page xix for questions to ask themselves.</p><p><strong>NOTE:</strong> All situations provide opportunities for students to learn something new.</p>" } },
