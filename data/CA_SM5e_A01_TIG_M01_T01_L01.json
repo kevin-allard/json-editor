@@ -160,7 +160,27 @@
             ]
           }
         },
-        { "uuid": "fn-explore-k7l8m9", "feature_type": "facilitation_notes", "feature_title": "Explore and Develop", "block": "Explore and Develop", "linked_student_uuid": "stu-l1-activity1-mno5", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": "1", "duration_minutes": 25, "purpose": "To match graphs to situations and then compare and contrast the characteristics of the graphs", "materials": "Glue sticks or tape, Graphs of Situations Cutouts, scissors", "driver_of_investigation": "Make sense of the world.", "steps": [ "Read and discuss the introduction and directions.", "Group students to complete the activity.", "Share and summarize: To match a situation with its graph, you first need to identify the independent and dependent quantities to recognize the growth pattern. A graph's characteristics, such as whether it is a line or curve or increasing or decreasing, describe a relationship between two quantities." ] } },
+        {
+          "uuid": "fn-explore-k7l8m9",
+          "feature_type": "facilitation_notes",
+          "feature_title": "Explore and Develop",
+          "block": "Explore and Develop",
+          "linked_student_uuid": "stu-l1-activity1-mno5",
+          "feature_data": {
+            "data_type": "detailed_activity_facilitation",
+            "activity_number": "1",
+            "duration_minutes": 25,
+            "mode": "book",
+            "purpose": "To match graphs to situations and then compare and contrast the characteristics of the graphs",
+            "materials": "Glue sticks or tape, Graphs of Situations Cutouts, scissors",
+            "driver_of_investigation": "Make sense of the world.",
+            "steps": [
+              "Read and discuss the introduction and directions.",
+              "Group students to complete the activity.",
+              "Share and summarize: To match a situation with its graph, you first need to identify the independent and dependent quantities to recognize the growth pattern. A graph's characteristics, such as whether it is a line or curve or increasing or decreasing, describe a relationship between two quantities."
+            ]
+          }
+        },
         { "uuid": "ds-jit-n0p1q2", "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Just-in-Time Support", "text": "<p><strong><em>Engagement: Sustaining Effort & Persistence</em></strong></p><p>To make the task more manageable, split it into two parts. Provide Graphs B, E, and F for the first three situations and Graphs A, C, and D for the last three situations.</p>" } },
         { "uuid": "oa-observe-r3s4t5", "feature_type": "ongoing_assessment", "feature_title": "Ongoing Assessment", "block": "Explore and Develop", "activity_number": "1", "feature_content_type": "html", "feature_data": { "data_type": "ongoing_assessment", "introduction_text": "Observe students as they match each situation to its graph.", "questions": [ "Are students using characteristics of the graphs to connect them to the situations?", "Are students using clues from the situations to determine the intervals?" ], "notes": "<p><strong>NOTE:</strong> This is the first pairing of these Habits of Mind:</p><ul><li><em>Model with mathematics.</em></li><li><em>Use appropriate tools strategically.</em></li></ul><p>Have students refer to page xix for questions to ask themselves.</p><p><strong>NOTE:</strong> All situations provide opportunities for students to learn something new.</p>" } },
         { "uuid": "cc-smartphone-u6v7w8", "feature_type": "cultivate_connections", "feature_title": "Cultivate Connections", "block": "Explore and Develop", "activity_number": "1", "feature_data": { "data_type": "rich_text", "content": "Considering an upgraded smartphone provides an opportunity to learn about classmates' experiences. Consider having students share examples of items they own that they have upgraded over time, or discuss the impact of mass tech upgrades on the environment." } },
@@ -191,7 +211,28 @@
             ]
           }
         },
-        { "uuid": "fn-reflect-m4n5o6", "feature_type": "facilitation_notes", "feature_title": "Reflect", "block": "Reflect", "linked_student_uuid": "stu-l1-reflectact1-wxy17", "feature_data": { "data_type": "detailed_activity_facilitation", "activity_number": null, "duration_minutes": 15, "purpose": "To write a situation and sketch a graph for a possible trip to school", "materials": null, "driver_of_investigation": null, "steps": [ "Group students to complete 1 and 2.", "Check in and share.", "Complete 3 as a class.", "Share and summarize: A graph's axes' labels, points, and whether the points form line segments or a curve provide insight into the situation it models." ] } },
+        {
+          "uuid": "fn-reflect-m4n5o6",
+          "feature_type": "facilitation_notes",
+          "feature_title": "Reflect",
+          "block": "Reflect",
+          "linked_student_uuid": "stu-l1-reflectact1-wxy17",
+          "feature_data": {
+            "data_type": "detailed_activity_facilitation",
+            "activity_number": null,
+            "duration_minutes": 15,
+            "mode": "book",
+            "purpose": "To write a situation and sketch a graph for a possible trip to school",
+            "materials": null,
+            "driver_of_investigation": null,
+            "steps": [
+              "Group students to complete 1 and 2.",
+              "Check in and share.",
+              "Complete 3 as a class.",
+              "Share and summarize: A graph's axes' labels, points, and whether the points form line segments or a curve provide insight into the situation it models."
+            ]
+          }
+        },
         { "uuid": "ds-challenge-p7q8r9", "feature_type": "differentiation_strategy", "feature_title": "Differentiation Strategy", "block": "Reflect", "activity_number": null, "feature_content_type": "html", "feature_data": { "data_type": "differentiation_strategy", "title": "Challenge Opportunity", "text": "<p><strong><em>Action & Expression: Expression & Communication</em></strong></p><p>Have students create two graphs, one with the <em>y</em>-axis labeled as the distance from home and the other with the <em>y</em>-axis labeled distance from school. Then, have them compare the characteristics of the graphs.</p>" } },
         { "uuid": "pq-reflect-s0t1u2", "feature_type": "purposeful_questions", "feature_title": "Purposeful Questions", "block": "Reflect", "feature_content_type": "html", "feature_data": { "data_type": "question_set_list", "items": [
               { "uuid": "pqitem-ref-1-v3w4x5", "linked_student_uuid": "stu-l1-problem-1-18", "activity_number": null, "item_numbers": "<span class=\"question-number\">1</span>", "student_page_number": "7", "question_type": "Probing", "questions": [ "How did you inform the reader about the pace?", "Could more than one possible graph model your situation? Explain." ] },

@@ -71,6 +71,7 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "prompt",
+            "mode": "presentation",
             "title": "What Comes First?",
             "text": "<p>Consider the situation and quantity pairs shared by your teacher. Prepare to share your thinking with your classmates.</p>"
           }
@@ -79,7 +80,10 @@
           "uuid": "explore-develop-header",
           "feature_type": "block_header",
           "feature_title": "Explore and Develop",
-          "feature_data": { "data_type": "static_header" }
+          "feature_data": { 
+            "data_type": "static_header",
+            "mode": "book"
+           }
         },
         {
           "uuid": "stu-l1-activity1-mno5",
@@ -366,7 +370,10 @@
           "uuid": "reflect-header",
           "feature_type": "block_header",
           "feature_title": "Reflect",
-          "feature_data": { "data_type": "static_header" }
+          "feature_data": { 
+            "data_type": "static_header",
+            "mode": "book"
+           }
         },
         {
           "uuid": "stu-l1-reflectact1-wxy17",
