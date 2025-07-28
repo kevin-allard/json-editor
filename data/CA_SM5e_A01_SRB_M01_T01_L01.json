@@ -147,18 +147,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-              { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (seconds)" },
-              { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Jared’s height above the water (feet)" },
-              { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 seconds, 0 feet above the water)" }
+              { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Time (seconds)" },
+              { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Jared’s height above the water (feet)" },
+              { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 seconds, 0 feet above the water)" }
             ],
             "item_body": {
               "stem": "<p>Jared completes a dive from a cliff 100-feet above a river. It takes him only 1.7 seconds to hit the water.</p>",
               "interactions": [
-                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
               ]
             },
             "ancillary_content": {
@@ -174,18 +173,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (minutes)" },
-                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Water (gallons)" },
-                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 minutes, 0 gallons of water)" }
+                { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Time (minutes)" },
+                { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Water (gallons)" },
+                { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 minutes, 0 gallons of water)" }
             ],
             "item_body": {
                 "stem": "<p>Parker is cleaning a 200-gallon office aquarium. She removes the fish and drains the water at a constant rate of 10 gallons per minute.</p>",
                 "interactions": [
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                    { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
                 ]
             },
             "ancillary_content": {
@@ -201,18 +199,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (weeks)" },
-                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Interest (dollars)" },
-                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 weeks, 0 dollars of interest)" }
+                { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Time (weeks)" },
+                { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Interest (dollars)" },
+                { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 weeks, 0 dollars of interest)" }
             ],
             "item_body": {
                 "stem": "<p>You want an upgraded smartphone but lack the funds. Your cousin offers to lend you the money with interest, starting at $1 and doubling weekly. You wonder if it’s a good deal.</p>",
                 "interactions": [
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                    { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
                 ]
             },
             "ancillary_content": {
@@ -227,18 +224,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (seconds)" },
-                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Height of baton (feet)" },
-                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 seconds, height of 0 feet)" }
+                { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Time (seconds)" },
+                { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Height of baton (feet)" },
+                { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 seconds, height of 0 feet)" }
             ],
             "item_body": {
                 "stem": "<p>Juniper, the Altadena High drum major, tosses her baton 22 feet high during the halftime finale, giving her 2 seconds to twirl twice and catch it.</p>",
                 "interactions": [
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                    { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
                 ]
             },
             "ancillary_content": {
@@ -253,18 +249,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Temperature (°F)" },
-                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of guests" },
-                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 degrees Fahrenheit, 0 number of guests)" }
+                { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Temperature (°F)" },
+                { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Number of guests" },
+                { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 degrees Fahrenheit, 0 number of guests)" }
             ],
             "item_body": {
                 "stem": "<p>The number of guests at a ski resort depends on the day’s high temperature. No one visits at -20°F or below. As temperatures rise, guests increase. At 0°F and above, attendance surges, reaching the 400-guest capacity at 10°F or higher.</p>",
                 "interactions": [
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                    { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
                 ]
             },
             "ancillary_content": {
@@ -279,18 +274,17 @@
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "qti_assessment_item",
-            "time_dependent": false,
             "response_declarations": [
-                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of jelly beans guessed" },
-                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of jelly beans the guess is off by" },
-                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 jelly beans guessed, 0 jelly beans the guess is off by)" }
+                { "identifier": "RESPONSE_INDEPENDENT", "correct_response": "Number of jelly beans guessed" },
+                { "identifier": "RESPONSE_DEPENDENT", "correct_response": "Number of jelly beans the guess is off by" },
+                { "identifier": "RESPONSE_ORIGIN", "correct_response": "(0 jelly beans guessed, 0 jelly beans the guess is off by)" }
             ],
             "item_body": {
                 "stem": "<p>Mr. Vasquez judges the Jelly Bean Challenge at the summer fair, recording all possible guesses and how far each is from the actual count.</p>",
                 "interactions": [
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
-                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                    { "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
                 ]
             },
             "ancillary_content": {
@@ -326,11 +320,11 @@
             "feature_data": {
                 "data_type": "qti_assessment_item",
                 "response_declarations": [
-                    { "identifier": "RESPONSE_7A", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" }
+                    { "identifier": "RESPONSE_7A", "is_sample_answer": true, "correct_response": "<p>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" }
                 ],
                 "item_body": {
                     "stem": "",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7A", "prompt": "Smart Phone, But Is It a Smart Deal? and Cold Weather"} ]
+                    "interactions": [ { "response_identifier": "RESPONSE_7A", "prompt": "Smart Phone, But Is It a Smart Deal? and Cold Weather"} ]
                 }
             }
         },
@@ -342,11 +336,11 @@
             "feature_data": {
                 "data_type": "qti_assessment_item",
                 "response_declarations": [
-                    { "identifier": "RESPONSE_7B", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" }
+                    { "identifier": "RESPONSE_7B", "is_sample_answer": true, "correct_response": "<p>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" }
                 ],
                 "item_body": {
                     "stem": "",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7B", "prompt": "Something’s Fishy and Daredevil"} ]
+                    "interactions": [ { "response_identifier": "RESPONSE_7B", "prompt": "Something’s Fishy and Daredevil"} ]
                 }
             }
         },
@@ -358,11 +352,11 @@
             "feature_data": {
                 "data_type": "qti_assessment_item",
                 "response_declarations": [
-                    { "identifier": "RESPONSE_7C", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" }
+                    { "identifier": "RESPONSE_7C", "is_sample_answer": true, "correct_response": "<p>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" }
                 ],
                 "item_body": {
                     "stem": "",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7C", "prompt": "Baton Twirling and Jelly Bean Challenge"} ]
+                    "interactions": [ { "response_identifier": "RESPONSE_7C", "prompt": "Baton Twirling and Jelly Bean Challenge"} ]
                 }
             }
         },
@@ -448,21 +442,155 @@
             }
         },
         {
-            "uuid": "stu-l1-problem-set-ijk24",
-            "feature_type": "problem_set",
-            "feature_title": "Problem Set",
+            "uuid": "practice-prob-1",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 1",
             "feature_data": {
-                "data_type": "rich_text_list",
-                "items": [
-                    "Baila reads a 300-page book at a rate of 20 pages per hour.",
-                    "A car wash business charges $15 per car for a basic wash.",
-                    "Ashley drinks water at a steady rate of 0.5 liters per 15 minutes while hiking.",
-                    "A library allows users to borrow books for 2 weeks per loan period.",
-                    "A group of friends purchases tickets to a concert. Tickets cost $75 each.",
-                    "A hose fills a swimming pool at a rate of 8 gallons per minute.",
-                    "The temperature drops 2 degrees Fahrenheit per hour overnight.",
-                    "A construction company rents a bulldozer for $150 per day."
-                ]
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Time (hours)" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Number of pages read" }
+                ],
+                "item_body": {
+                    "stem": "<p>Baila reads a 300-page book at a rate of 20 pages per hour.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-2",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 2",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Number of cars washed" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Cost (dollars)" }
+                ],
+                "item_body": {
+                    "stem": "<p>A car wash business charges $15 per car for a basic wash.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-3",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 3",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Time (minutes)" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Volume of water consumed (liters)" }
+                ],
+                "item_body": {
+                    "stem": "<p>Ashley drinks water at a steady rate of 0.5 liters per 15 minutes while hiking.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-4",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 4",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Number of loans" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Time (weeks)" }
+                ],
+                "item_body": {
+                    "stem": "<p>A library allows users to borrow books for 2 weeks per loan period.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-5",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 5",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Number of tickets purchased" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Cost (dollars)" }
+                ],
+                "item_body": {
+                    "stem": "<p>A group of friends purchases tickets to a concert. Tickets cost $75 each.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-6",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 6",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Time (minutes)" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Volume of water in the pool (gallons)" }
+                ],
+                "item_body": {
+                    "stem": "<p>A hose fills a swimming pool at a rate of 8 gallons per minute.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-7",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 7",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Time (hours)" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Temperature change (degrees Fahrenheit)" }
+                ],
+                "item_body": {
+                    "stem": "<p>The temperature drops 2 degrees Fahrenheit per hour overnight.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
+            }
+        },
+        {
+            "uuid": "practice-prob-8",
+            "feature_type": "assessment_item",
+            "feature_title": "Practice 8",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_INDEP", "correct_response": "Number of rental days" },
+                    { "identifier": "RESPONSE_DEP", "correct_response": "Cost (dollars)" }
+                ],
+                "item_body": {
+                    "stem": "<p>A construction company rents a bulldozer for $150 per day.</p>",
+                    "interactions": [
+                        { "response_identifier": "RESPONSE_INDEP", "prompt": "Independent quantity:" },
+                        { "response_identifier": "RESPONSE_DEP", "prompt": "Dependent quantity:" }
+                    ]
+                }
             }
         }
       ]
