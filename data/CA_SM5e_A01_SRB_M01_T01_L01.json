@@ -87,7 +87,7 @@
           "feature_title": "Connecting Situations and Their Graphs",
           "feature_data": {
             "data_type": "activity_header",
-            "activity_number": "1"
+            "activity_number": 1
           }
         },
         {
@@ -101,14 +101,23 @@
           }
         },
         {
-          "uuid": "stu-l1-directions-stu7",
-          "feature_type": "directions",
-          "feature_title": "Directions",
+          "uuid": "stu-l1-directions-line-stu7a",
+          "feature_type": "directions_line",
+          "feature_title": "Direction Line",
+          "feature_content_type": "html",
+          "feature_data": {
+            "data_type": "rich_text",
+            "content": "<p>Cut out the graphs provided by your teacher. Then, read each of the six situations in this activity.</p>"
+          }
+        },
+        {
+          "uuid": "stu-l1-activity-steps-stu7b",
+          "feature_type": "activity_steps",
+          "feature_title": "Activity Steps",
           "feature_content_type": "html",
           "feature_data": {
             "data_type": "rich_text_list",
             "items": [
-              "Cut out the graphs provided by your teacher. Then, read each of the six situations in this activity.",
               "Determine the independent and dependent quantities.",
               "Match each situation to its corresponding graph. Glue the graph next to the situation.",
               "For each graph, label the <em>x</em>- and <em>y</em>-axis with the appropriate quantity and a reasonable scale, and then interpret the meaning of the origin."
@@ -129,93 +138,159 @@
         },
         {
           "uuid": "prob-daredevil-9c3e8a",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "1. Daredevil",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>Jared completes a dive from a cliff 100-feet above a river. It takes him only 1.7 seconds to hit the water.</p>",
-            "callout": {
-                "type": "think_about",
-                "content": "<p>Be sure to include the appropriate units of measure for each quantity.</p>"
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+              { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (seconds)" },
+              { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Jared’s height above the water (feet)" },
+              { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 seconds, 0 feet above the water)" }
+            ],
+            "item_body": {
+              "stem": "<p>Jared completes a dive from a cliff 100-feet above a river. It takes him only 1.7 seconds to hit the water.</p>",
+              "interactions": [
+                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+              ]
             },
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Time (seconds)</p><p><strong>Dependent quantity:</strong> Jared’s height above the water (feet)</p><p><strong>Origin:</strong> (0 seconds, 0 feet above the water)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_e.svg", "alt_text": "A graph titled 'Graph E' showing a downward curving line.", "caption": "Graph E" }
+            "ancillary_content": {
+              "think_about": "<p>Be sure to include the appropriate units of measure for each quantity.</p>",
+              "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_e.svg", "alt_text": "A graph titled 'Graph E' showing a downward curving line.", "caption": "Graph E" }
             }
           }
         },
         {
           "uuid": "prob-fishy-bcd10",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "2. Something’s Fishy",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>Parker is cleaning a 200-gallon office aquarium. She removes the fish and drains the water at a constant rate of 10 gallons per minute.</p>",
-            "callout": {
-                "type": "ask_yourself",
-                "content": "<p>What strategies will you use to match each graph with one of the six situations?</p>"
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (minutes)" },
+                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Water (gallons)" },
+                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 minutes, 0 gallons of water)" }
+            ],
+            "item_body": {
+                "stem": "<p>Parker is cleaning a 200-gallon office aquarium. She removes the fish and drains the water at a constant rate of 10 gallons per minute.</p>",
+                "interactions": [
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                ]
             },
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Time (minutes)</p><p><strong>Dependent quantity:</strong> Water (gallons)</p><p><strong>Origin:</strong> (0 minutes, 0 gallons of water)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_f.svg", "alt_text": "A graph titled 'Graph F' showing a straight line decreasing.", "caption": "Graph F" }
+            "ancillary_content": {
+                "ask_yourself": "<p>What strategies will you use to match each graph with one of the six situations?</p>",
+                "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_f.svg", "alt_text": "A graph titled 'Graph F' showing a straight line decreasing.", "caption": "Graph F" }
             }
           }
         },
         {
           "uuid": "prob-smartphone-efg11",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "3. Smart Phone, But Is It a Smart Deal?",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>You want an upgraded smartphone but lack the funds. Your cousin offers to lend you the money with interest, starting at $1 and doubling weekly. You wonder if it’s a good deal.</p>",
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Time (weeks)</p><p><strong>Dependent quantity:</strong> Interest (dollars)</p><p><strong>Origin:</strong> (0 weeks, 0 dollars of interest)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_b.svg", "alt_text": "A graph titled 'Graph B' showing an upward curving exponential line.", "caption": "Graph B" }
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (weeks)" },
+                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Interest (dollars)" },
+                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 weeks, 0 dollars of interest)" }
+            ],
+            "item_body": {
+                "stem": "<p>You want an upgraded smartphone but lack the funds. Your cousin offers to lend you the money with interest, starting at $1 and doubling weekly. You wonder if it’s a good deal.</p>",
+                "interactions": [
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                ]
+            },
+            "ancillary_content": {
+                "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_b.svg", "alt_text": "A graph titled 'Graph B' showing an upward curving exponential line.", "caption": "Graph B" }
             }
           }
         },
         {
           "uuid": "prob-baton-hij12",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "4. Baton Twirling",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>Juniper, the Altadena High drum major, tosses her baton 22 feet high during the halftime finale, giving her 2 seconds to twirl twice and catch it.</p>",
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Time (seconds)</p><p><strong>Dependent quantity:</strong> Height of baton (feet)</p><p><strong>Origin:</strong> (0 seconds, height of 0 feet)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_d.svg", "alt_text": "A graph titled 'Graph D' showing a parabolic curve.", "caption": "Graph D" }
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Time (seconds)" },
+                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Height of baton (feet)" },
+                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 seconds, height of 0 feet)" }
+            ],
+            "item_body": {
+                "stem": "<p>Juniper, the Altadena High drum major, tosses her baton 22 feet high during the halftime finale, giving her 2 seconds to twirl twice and catch it.</p>",
+                "interactions": [
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                ]
+            },
+            "ancillary_content": {
+                "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_d.svg", "alt_text": "A graph titled 'Graph D' showing a parabolic curve.", "caption": "Graph D" }
             }
           }
         },
         {
           "uuid": "prob-cold-weather-klm13",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "5. Cold Weather",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>The number of guests at a ski resort depends on the day’s high temperature. No one visits at -20°F or below. As temperatures rise, guests increase. At 0°F and above, attendance surges, reaching the 400-guest capacity at 10°F or higher.</p>",
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Temperature (°F)</p><p><strong>Dependent quantity:</strong> Number of guests</p><p><strong>Origin:</strong> (0 degrees Fahrenheit, 0 number of guests)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_a.svg", "alt_text": "A graph titled 'Graph A' showing guests increasing with temperature.", "caption": "Graph A" }
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Temperature (°F)" },
+                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of guests" },
+                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 degrees Fahrenheit, 0 number of guests)" }
+            ],
+            "item_body": {
+                "stem": "<p>The number of guests at a ski resort depends on the day’s high temperature. No one visits at -20°F or below. As temperatures rise, guests increase. At 0°F and above, attendance surges, reaching the 400-guest capacity at 10°F or higher.</p>",
+                "interactions": [
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                ]
+            },
+            "ancillary_content": {
+                "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_a.svg", "alt_text": "A graph titled 'Graph A' showing guests increasing with temperature.", "caption": "Graph A" }
             }
           }
         },
         {
           "uuid": "prob-jelly-bean-nop14",
-          "feature_type": "problem",
+          "feature_type": "assessment_item",
           "feature_title": "6. Jelly Bean Challenge",
           "feature_content_type": "html",
           "feature_data": {
-            "data_type": "problem",
-            "content": "<p>Mr. Vasquez judges the Jelly Bean Challenge at the summer fair, recording all possible guesses and how far each is from the actual count.</p>",
-            "answer": {
-                "content": "<p><strong>Independent quantity:</strong> Number of jelly beans guessed</p><p><strong>Dependent quantity:</strong> Number of jelly beans the guess is off by</p><p><strong>Origin:</strong> (0 jelly beans guessed, 0 jelly beans the guess is off by)</p>",
-                "image": { "image_id": "sm5e_a1_m01_t01_l01_graph_c.svg", "alt_text": "A graph titled 'Graph C' showing a V-shape.", "caption": "Graph C" }
+            "data_type": "qti_assessment_item",
+            "time_dependent": false,
+            "response_declarations": [
+                { "identifier": "RESPONSE_INDEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of jelly beans guessed" },
+                { "identifier": "RESPONSE_DEPENDENT", "base_type": "string", "cardinality": "single", "correct_response": "Number of jelly beans the guess is off by" },
+                { "identifier": "RESPONSE_ORIGIN", "base_type": "string", "cardinality": "single", "correct_response": "(0 jelly beans guessed, 0 jelly beans the guess is off by)" }
+            ],
+            "item_body": {
+                "stem": "<p>Mr. Vasquez judges the Jelly Bean Challenge at the summer fair, recording all possible guesses and how far each is from the actual count.</p>",
+                "interactions": [
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_INDEPENDENT", "prompt": "Independent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_DEPENDENT", "prompt": "Dependent quantity:" },
+                    { "type": "textEntryInteraction", "response_identifier": "RESPONSE_ORIGIN", "prompt": "Origin:" }
+                ]
+            },
+            "ancillary_content": {
+                "graphic": { "image_id": "sm5e_a1_m01_t01_l01_graph_c.svg", "alt_text": "A graph titled 'Graph C' showing a V-shape.", "caption": "Graph C" }
             }
           }
         },
