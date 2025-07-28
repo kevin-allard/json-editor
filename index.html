@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.37 -->
+<!-- Editor Version: rc1.beta.0.39 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,7 +64,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.37</span>
+                <span class="version-tag">v. rc1.beta.0.39</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -289,11 +289,11 @@
                             }
                             return html;
 
-                        case 'problem': // Legacy problem format (Reflect section)
+                        case 'problem': 
                              const probData = feature.feature_data;
-                             const isSampleAnswer = probData.answer && probData.answer.is_sample_answer === true;
                              let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
                              if (probData.answer) {
+                                 const isSampleAnswer = probData.answer.is_sample_answer === true;
                                  probHtml += `<div class="form-field" style="border-left: 4px solid magenta; padding-left: 1rem;">
                                                 <div class="answer-header">
                                                     <label>Answer</label>
@@ -336,7 +336,8 @@
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
                         
                         case 'ongoing_assessment': 
-                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${facData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                            const assessData = feature.feature_data;
+                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
                         
                         case 'question_set_list': 
                             return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
