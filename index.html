@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.42 -->
+<!-- Editor Version: rc1.beta.0.43 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,23 +30,38 @@
             flex-direction: column;
             height: 100vh;
         }
-        .editor-container { width: 100%; max-width: 95%; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
-        .editor-header { height: var(--header-height); background-color: var(--md-bg-card); padding: 16px 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .side-by-side-container { 
-            display: flex; 
-            gap: 24px; 
-            flex-grow: 1;
-            overflow: hidden;
-            padding-top: 24px;
+        .editor-header {
+            height: var(--header-height);
+            padding: 0 24px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            background-color: var(--md-bg-card);
+        }
+        #editor-main-content {
+            flex-grow: 1; /* Allow main to fill remaining space */
+            display: flex;
+            gap: 24px;
+            overflow: hidden; /* Critical for child scrolling */
+            padding: 24px;
+            box-sizing: border-box;
         }
         .editor-column { 
             flex: 1; 
             min-width: 0;
             overflow-y: auto; /* INDEPENDENT SCROLLING */
-            padding-right: 12px; /* For scrollbar spacing */
-            padding-bottom: 50vh; /* Ensure last item isn't stuck at the bottom */
+            padding-right: 12px;
         }
-        .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: 0; background: var(--md-bg-main); z-index: 10; }
+        .column-header { 
+            font-size: 24px; font-weight: 500; margin-bottom: 16px; 
+            padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); 
+            position: sticky; top: -1px; /* Sticky header for each column */
+            background: var(--md-bg-main); z-index: 10; 
+            padding-top: 1px; /* Prevents border clipping */
+        }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
         
         /* Unchanged styles */
@@ -68,7 +83,7 @@
         .form-field { margin-bottom: 20px; }
         .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
         .form-field input[type="text"], textarea, select { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
-        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); }
+        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); width: 100%; }
         .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
         .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
@@ -92,11 +107,13 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.42</span>
+                <span class="version-tag">v. rc1.beta.0.43</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </div>
-        <main id="editor-main-content" class="editor-container"><div class="loader">Loading Editor...</div></main>
+        <main id="editor-main-content">
+            <div class="loader">Loading Editor...</div>
+        </main>
     </div>
 
     <script>
@@ -196,7 +213,7 @@
                             value = editor.getContent();
                         }
                         updateSharedData(source, path, value);
-                        renderSideBySideEditor(); // Re-render both columns to show sync
+                        renderSideBySideEditor();
                     }
                     editor.remove();
                     // Restore original content if not saving
@@ -237,7 +254,6 @@
                     setNestedProperty(sourceData, path, value);
                     const pathParts = path.match(/[^.\[\]]+/g) || [];
                     const featurePath = pathParts.slice(0, 2).join('.');
-                    const featureIndex = parseInt(pathParts[1], 10);
                     const changedFeature = getNestedProperty(sourceData, featurePath);
                     if (!changedFeature || !changedFeature.uuid) return;
                 
@@ -283,17 +299,15 @@
                 
                 function renderSideBySideEditor() {
                     destroyActiveEditor(false);
-                    let html = `<div class="side-by-side-container">
-                                    <div class="editor-column" data-source="srb">
-                                        <div class="column-header">Student View <small>(SRB)</small></div>
-                                        ${renderColumnContent('srb')}
-                                    </div>
-                                    <div class="editor-column" data-source="tig">
-                                        <div class="column-header">Teacher View <small>(TIG)</small></div>
-                                        ${renderColumnContent('tig')}
-                                    </div>
-                                </div>`;
-                    mainContent.innerHTML = html;
+                    mainContent.innerHTML = `
+                        <div class="editor-column" data-source="srb">
+                            <div class="column-header">Student View <small>(SRB)</small></div>
+                            ${renderColumnContent('srb')}
+                        </div>
+                        <div class="editor-column" data-source="tig">
+                            <div class="column-header">Teacher View <small>(TIG)</small></div>
+                            ${renderColumnContent('tig')}
+                        </div>`;
                 }
 
                 function renderColumnContent(source) {
@@ -329,7 +343,7 @@
                 }
 
                 function renderFeature(feature, path, source) {
-                    if (!feature || !feature.feature_data) return '';
+                    if (!feature || !feature.feature_data) return ''; 
                     if (feature.feature_data.data_type === 'static_header') {
                          return `<div class="static-header-card" data-path="${path}">
                                     ${feature.feature_title}
@@ -394,17 +408,45 @@
                                     ${promptHtml}
                                     <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         
-                        // All other cases remain the same, but using the correct base path
-                        case 'list': 
-                        case 'rich_text_list':
-                            const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul';
-                            return createEditableDiv(path + '.feature_data.items', true, listTag);
+                        // All other cases remain the same but now use the generic 'data' object
+                        case 'list': case 'rich_text_list':
+                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
                         
                         case 'prompt': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
                                     <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
 
-                        default: return `<!-- Unhandled type: ${dataType} -->`;
+                        case 'qti_assessment_item':
+                            const itemData = feature.feature_data;
+                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
+                            (itemData.item_body.interactions || []).forEach((interaction, i) => {
+                                const respDeclIndex = (itemData.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
+                                if (respDeclIndex > -1) {
+                                    const respDecl = itemData.response_declarations[respDeclIndex];
+                                    const isSample = respDecl.is_sample_answer === true;
+                                    html += `<div class="qti-interaction">
+                                                <div class="form-field"><label>Interaction Prompt</label><input type="text" value="${interaction.prompt}" data-path="${path}.feature_data.item_body.interactions[${i}].prompt" /></div>
+                                                <div class="form-field qti-answer">
+                                                    <div class="answer-header">
+                                                        <label>Correct Response</label>
+                                                        <div class="sample-answer-toggle">
+                                                            <label for="sample-toggle-${path}-${i}">Sample Answer?</label>
+                                                            <input type="checkbox" id="sample-toggle-${path}-${i}" data-path="${path}.feature_data.response_declarations[${respDeclIndex}].is_sample_answer" ${isSample ? 'checked' : ''} />
+                                                        </div>
+                                                    </div>
+                                                    ${createEditableDiv(`${path}.feature_data.response_declarations[${respDeclIndex}].correct_response`)}
+                                                </div>
+                                            </div>`;
+                                }
+                            });
+                            if (itemData.ancillary_content) {
+                                if (itemData.ancillary_content.think_about) { html += `<div class="form-field"><label>Think About</label>${createEditableDiv(`${path}.feature_data.ancillary_content.think_about`)}</div>`; }
+                                if (itemData.ancillary_content.ask_yourself) { html += `<div class="form-field"><label>Ask Yourself</label>${createEditableDiv(`${path}.feature_data.ancillary_content.ask_yourself`)}</div>`; }
+                                if (itemData.ancillary_content.graphic) { const graphic = itemData.ancillary_content.graphic; html += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
+                            }
+                            return html;
+                        
+                        default: return `<!-- Unhandled data_type: ${dataType} -->`;
                     }
                 }
 
