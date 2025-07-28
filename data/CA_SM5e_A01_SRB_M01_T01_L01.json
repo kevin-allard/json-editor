@@ -362,7 +362,9 @@
           "uuid": "stu-l1-reflectact1-wxy17",
           "feature_type": "activity_header",
           "feature_title": "A Writer and a Mathematician",
-          "feature_data": { "data_type": "activity_header" }
+          "feature_data": { 
+            "data_type": "activity_header"
+          }
         },
         {
           "uuid": "stu-l1-problem-1-18",
