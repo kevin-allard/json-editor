@@ -295,6 +295,16 @@
           }
         },
         {
+            "uuid": "prob-compare-graphs-qrs15-instruction",
+            "feature_type": "instructional_text",
+            "feature_title": "Instructions for Item 7",
+            "feature_content_type": "html",
+            "feature_data": {
+                "data_type": "rich_text",
+                "content": "<p>Compare the graphs for each pair of situations given. Describe any similarities and differences you notice.</p>"
+            }
+        },
+        {
             "uuid": "think-about-qrs15",
             "feature_type": "think_about",
             "feature_title": "Think About...",
@@ -307,7 +317,7 @@
         {
             "uuid": "prob-compare-7a-qrs15a",
             "feature_type": "assessment_item",
-            "feature_title": "7a. Compare Graphs",
+            "feature_title": "7a. Smart Phone vs. Cold Weather",
             "feature_content_type": "html",
             "feature_data": {
                 "data_type": "qti_assessment_item",
@@ -315,15 +325,15 @@
                     { "identifier": "RESPONSE_7A", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" }
                 ],
                 "item_body": {
-                    "stem": "<p>Describe any similarities and differences you notice between the 'Smart Phone, But Is It a Smart Deal?' and 'Cold Weather' graphs.</p>",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7A", "prompt": "Your answer:"} ]
+                    "stem": "",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7A", "prompt": "Smart Phone, But Is It a Smart Deal? and Cold Weather"} ]
                 }
             }
         },
         {
             "uuid": "prob-compare-7b-qrs15b",
             "feature_type": "assessment_item",
-            "feature_title": "7b. Compare Graphs",
+            "feature_title": "7b. Something’s Fishy vs. Daredevil",
             "feature_content_type": "html",
             "feature_data": {
                 "data_type": "qti_assessment_item",
@@ -331,15 +341,15 @@
                     { "identifier": "RESPONSE_7B", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" }
                 ],
                 "item_body": {
-                    "stem": "<p>Describe any similarities and differences you notice between the 'Something’s Fishy' and 'Daredevil' graphs.</p>",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7B", "prompt": "Your answer:"} ]
+                    "stem": "",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7B", "prompt": "Something’s Fishy and Daredevil"} ]
                 }
             }
         },
         {
             "uuid": "prob-compare-7c-qrs15c",
             "feature_type": "assessment_item",
-            "feature_title": "7c. Compare Graphs",
+            "feature_title": "7c. Baton Twirling vs. Jelly Bean Challenge",
             "feature_content_type": "html",
             "feature_data": {
                 "data_type": "qti_assessment_item",
@@ -347,8 +357,8 @@
                     { "identifier": "RESPONSE_7C", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" }
                 ],
                 "item_body": {
-                    "stem": "<p>Describe any similarities and differences you notice between the 'Baton Twirling' and 'Jelly Bean Challenge' graphs.</p>",
-                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7C", "prompt": "Your answer:"} ]
+                    "stem": "",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7C", "prompt": "Baton Twirling and Jelly Bean Challenge"} ]
                 }
             }
         },
