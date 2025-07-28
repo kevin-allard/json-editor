@@ -295,23 +295,62 @@
           }
         },
         {
-          "uuid": "prob-compare-graphs-qrs15",
-          "feature_type": "problem_with_subproblems",
-          "feature_title": "7. Compare the graphs for each pair of situations given.",
-          "feature_content_type": "html",
-          "feature_data": {
-            "data_type": "problem_with_subproblems",
-            "content": "<p>Describe any similarities and differences you notice.</p>",
-            "callout": {
-                "type": "think_about",
+            "uuid": "think-about-qrs15",
+            "feature_type": "think_about",
+            "feature_title": "Think About...",
+            "feature_content_type": "html",
+            "feature_data": {
+                "data_type": "rich_text",
                 "content": "<p>Look closely when analyzing the graphs. What do you see?</p>"
-            },
-            "sub_problems": [
-              { "uuid": "subprob-smart-phone-cold-weather-qrs15a", "title": "a. Smart Phone, But Is It a Smart Deal? and Cold Weather", "answer": { "content": "<p><strong>Sample answers:</strong><br>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" } },
-              { "uuid": "subprob-fishy-daredevil-qrs15b", "title": "b. Something’s Fishy and Daredevil", "answer": { "content": "<p><strong>Sample answers:</strong><br>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" } },
-              { "uuid": "subprob-baton-jelly-bean-qrs15c", "title": "c. Baton Twirling and Jelly Bean Challenge", "answer": { "content": "<p><strong>Sample answers:</strong><br>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" } }
-            ]
-          }
+            }
+        },
+        {
+            "uuid": "prob-compare-7a-qrs15a",
+            "feature_type": "assessment_item",
+            "feature_title": "7a. Compare Graphs",
+            "feature_content_type": "html",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_7A", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs increase from left to right.<br>The graph of the <em>Smart Phone, But Is It a Smart Deal?</em> situation is a smooth curve, but the graph of the <em>Cold Weather</em> situation is composed of two increasing and one constant line segments.</p>" }
+                ],
+                "item_body": {
+                    "stem": "<p>Describe any similarities and differences you notice between the 'Smart Phone, But Is It a Smart Deal?' and 'Cold Weather' graphs.</p>",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7A", "prompt": "Your answer:"} ]
+                }
+            }
+        },
+        {
+            "uuid": "prob-compare-7b-qrs15b",
+            "feature_type": "assessment_item",
+            "feature_title": "7b. Compare Graphs",
+            "feature_content_type": "html",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_7B", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>Both graphs decrease from left to right.<br>The graph of the <em>Something’s Fishy</em> situation is a straight line, but the graph of the <em>Daredevil</em> situation is a smooth curve.</p>" }
+                ],
+                "item_body": {
+                    "stem": "<p>Describe any similarities and differences you notice between the 'Something’s Fishy' and 'Daredevil' graphs.</p>",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7B", "prompt": "Your answer:"} ]
+                }
+            }
+        },
+        {
+            "uuid": "prob-compare-7c-qrs15c",
+            "feature_type": "assessment_item",
+            "feature_title": "7c. Compare Graphs",
+            "feature_content_type": "html",
+            "feature_data": {
+                "data_type": "qti_assessment_item",
+                "response_declarations": [
+                    { "identifier": "RESPONSE_7C", "base_type": "string", "cardinality": "single", "is_sample_answer": true, "correct_response": "<p>The graphs have either a minimum or a maximum value. Both graphs increase and decrease.<br>The graph of the <em>Baton Twirling</em> situation is a smooth curve, but the graph of the <em>Jelly Bean Challenge</em> situation is made up of two straight lines.</p>" }
+                ],
+                "item_body": {
+                    "stem": "<p>Describe any similarities and differences you notice between the 'Baton Twirling' and 'Jelly Bean Challenge' graphs.</p>",
+                    "interactions": [ { "type": "textEntryInteraction", "response_identifier": "RESPONSE_7C", "prompt": "Your answer:"} ]
+                }
+            }
         },
         {
           "uuid": "reflect-header",
@@ -334,7 +373,8 @@
             "data_type": "problem",
             "content": "<p>Write a situation and sketch a graph to describe a possible trip to school.</p>",
             "answer": {
-                "content": "<p><strong>Sample answer:</strong><br>I walk half a mile to school in 10 minutes. Then, I stop to talk to a friend and tie my shoes for 5 minutes. I walk the remaining half-mile to school in 10 minutes.</p>",
+                "is_sample_answer": true,
+                "content": "<p>I walk half a mile to school in 10 minutes. Then, I stop to talk to a friend and tie my shoes for 5 minutes. I walk the remaining half-mile to school in 10 minutes.</p>",
                 "image": { "image_id": "sm5e_a1_m01_t01_l01_reflect_graph.svg", "alt_text": "A graph showing distance traveled versus time.", "caption": "Graph" }
             }
           }
@@ -347,7 +387,10 @@
           "feature_data": {
             "data_type": "problem",
             "content": "<p>Describe the meaning of the points, or smooth curve, represented by your graph.</p>",
-            "answer": { "content": "<p><strong>Sample answer:</strong><br>Each point on the graph represents possible times and the corresponding distances.</p>" }
+            "answer": {
+                "is_sample_answer": true,
+                "content": "<p>Each point on the graph represents possible times and the corresponding distances.</p>"
+            }
           }
         },
         {
@@ -358,7 +401,9 @@
           "feature_data": {
             "data_type": "problem",
             "content": "<p>Compare your situation and sketch with your classmates’ situations and sketches. What similarities do you notice? What differences do you notice?</p>",
-            "answer": { "content": "<p>Answers will vary.</p>" }
+            "answer": {
+                "content": "<p>Answers will vary.</p>"
+            }
           }
         },
         {
