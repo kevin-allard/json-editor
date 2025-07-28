@@ -1,10 +1,10 @@
-<!-- Editor Version: rc1.beta.0.39 -->
+<!-- Editor Version: rc1.beta.0.41 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Content Editor</title>
+    <title>Lesson Content Editor (Side-by-Side)</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -17,10 +17,9 @@
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
             --md-border-color: #e0e0e0; --md-text-primary: #212121; --md-text-secondary: #757575;
-            --md-danger-color: #f44336; --md-elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
         }
         body { font-family: 'Roboto', sans-serif; background-color: var(--md-bg-main); margin: 0; color: var(--md-text-primary); }
-        .editor-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .editor-container { max-width: 95%; margin: 0 auto; padding: 24px; }
         .editor-header { background-color: var(--md-bg-card); padding: 16px 24px; border-radius: 4px; margin-bottom: 24px; display: flex; align-items: center; gap: 24px; box-shadow: var(--md-elevation-1); }
         .selector-group { position: relative; }
         .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
@@ -28,6 +27,10 @@
         .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
         .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
         .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
+        .side-by-side-container { display: flex; gap: 24px; }
+        .editor-column { flex: 1; min-width: 0; }
+        .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); }
+        .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
         .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
         .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; }
         .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-text-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--md-border-color); border-radius: 8px 8px 0 0; }
@@ -45,8 +48,8 @@
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
         .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
         .static-header-card { display: flex; align-items: center; gap: 16px; padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
-        .static-header-card select { flex: 0 0 90px; } /* Constrain width of dropdown */
-        .static-header-card input { flex: 1 1 auto; } /* Allow title to grow */
+        .static-header-card select { flex: 0 0 90px; }
+        .static-header-card input { flex: 1 1 auto; }
         .qti-interaction { border-left: 4px solid var(--md-primary-color); padding-left: 16px; margin-top: 16px; }
         .qti-answer { border-left: 4px solid magenta; padding-left: 16px; }
         .graphic-placeholder { border: 2px dashed var(--md-border-color); padding: 16px; text-align: center; color: var(--md-text-secondary); border-radius: 4px; }
@@ -64,7 +67,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.39</span>
+                <span class="version-tag">v. rc1.beta.0.41</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </header>
@@ -85,7 +88,7 @@
             };
 
             function runApp() {
-                let currentLessonData = null; let manifestData = []; let activeEditor = null;
+                let currentTigData = null; let currentSrbData = null; let manifestData = []; let activeEditor = null;
                 const mainContent = document.getElementById('editor-main-content');
                 const courseSelector = document.getElementById('course-selector');
                 const lessonSelector = document.getElementById('lesson-selector');
@@ -112,30 +115,70 @@
                 }
                 
                 function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
-                function populateLessonSelector(courseName) { lessonSelector.innerHTML = ''; const course = manifestData.find(c => c.courseName === courseName); if (course && course.lessons.length > 0) { lessonSelector.disabled = false; course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.path))); } else { lessonSelector.disabled = true; lessonSelector.add(new Option('No lessons available', '')); } }
+                function populateLessonSelector(courseName) { 
+                    lessonSelector.innerHTML = ''; 
+                    const course = manifestData.find(c => c.courseName === courseName); 
+                    if (course && course.lessons.length > 0) { 
+                        lessonSelector.disabled = false; 
+                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, index))); 
+                    } else { 
+                        lessonSelector.disabled = true; 
+                        lessonSelector.add(new Option('No lessons available', '')); 
+                    } 
+                }
                 async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
-                async function handleLessonChange() { const path = lessonSelector.value; if (!path) { mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`; currentLessonData = null; return; } mainContent.innerHTML = `<div class="loader">Loading lesson...</div>`; try { const response = await fetch(path); if (!response.ok) throw new Error(`Could not fetch: ${path}`); currentLessonData = await response.json(); renderEditor(); } catch (error) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`; } }
+                async function handleLessonChange() {
+                    const lessonIndex = lessonSelector.value;
+                    if (!lessonIndex) {
+                        mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
+                        currentTigData = null; currentSrbData = null;
+                        return;
+                    }
+                    mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
+                    
+                    const course = manifestData.find(c => c.courseName === courseSelector.value);
+                    const lessonInfo = course.lessons[lessonIndex];
+
+                    try {
+                        const [tigResponse, srbResponse] = await Promise.all([
+                            fetch(lessonInfo.tig_path),
+                            fetch(lessonInfo.srb_path)
+                        ]);
+
+                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${lessonInfo.tig_path}`);
+                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${lessonInfo.srb_path}`);
+
+                        currentTigData = await tigResponse.json();
+                        currentSrbData = await srbResponse.json();
+                        
+                        renderSideBySideEditor();
+
+                    } catch (error) {
+                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
+                    }
+                }
                 
                 function destroyActiveEditor(saveContent = true) {
                     if (!activeEditor) return;
-                    const { editor, container, path, isList } = activeEditor;
+                    const { editor, container, path, isList, source } = activeEditor;
                     if (saveContent) {
+                        let value;
                         if (isList) {
                             const tempDiv = document.createElement('div');
                             tempDiv.innerHTML = editor.getContent();
-                            const items = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
-                            setNestedProperty(currentLessonData, path, items);
+                            value = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
                         } else {
-                            const content = editor.getContent();
-                            setNestedProperty(currentLessonData, path, content);
+                            value = editor.getContent();
                         }
+                        updateSharedData(source, path, value);
                     }
+
                     const featureCard = container.closest('.feature-card');
                     if(featureCard) {
                         const featurePath = featureCard.getAttribute('data-path');
-                        const feature = getNestedProperty(currentLessonData, featurePath);
+                        const feature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
                         const contentArea = featureCard.querySelector('.feature-content');
-                        if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath);
+                        if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath, source);
                     }
                     editor.remove();
                     activeEditor = null;
@@ -148,66 +191,120 @@
                     destroyActiveEditor(); 
                     const path = target.getAttribute('data-path');
                     const isList = target.getAttribute('data-type') === 'list';
+                    const source = target.closest('.editor-column').getAttribute('data-source');
                     const content = target.innerHTML;
                     target.innerHTML = '';
                     const textarea = document.createElement('textarea');
                     textarea.id = `editor-for-${path.replace(/[.\[\]]/g, '-')}`;
                     textarea.value = content;
                     target.appendChild(textarea);
-                    const newEditorConfig = { target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); activeEditor = { editor, container: target, path, isList }; } };
+                    const newEditorConfig = { target: textarea, plugins: 'lists link image code help wordcount autoresize formula', toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', menubar: true, min_height: 150, autoresize_bottom_margin: 24, setup: (editor) => { editor.on('init', () => editor.focus()); activeEditor = { editor, container: target, path, isList, source }; } };
                     if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic formula | bullist numlist | code | help'; }
                     tinymce.init(newEditorConfig);
+                }
+                
+                function updateSharedData(source, path, value) {
+                    const sourceData = source === 'tig' ? currentTigData : currentSrbData;
+                    const targetData = source === 'tig' ? currentSrbData : currentTigData;
+                    
+                    setNestedProperty(sourceData, path, value);
+                
+                    const pathParts = path.match(/[^.\[\]]+/g) || [];
+                    const featurePath = pathParts.slice(0, 2).join('.');
+                    const changedFeature = getNestedProperty(sourceData, featurePath);
+                    if (!changedFeature || !changedFeature.uuid) return;
+                
+                    const findAndSync = (items, basePath) => {
+                        const targetIndex = (items || []).findIndex(f => f.uuid === changedFeature.uuid);
+                        if (targetIndex !== -1) {
+                            const propertySubPath = pathParts.slice(2).join('.');
+                            const targetPath = `${basePath}[${targetIndex}].${propertySubPath}`;
+                            setNestedProperty(targetData, targetPath, value);
+                            return true;
+                        }
+                        return false;
+                    };
+                
+                    if (findAndSync(targetData.lesson_overview_items, 'lesson_overview_items')) return;
+                    if (source === 'srb') {
+                         (targetData.lesson_support_sessions || []).forEach((session, sIndex) => {
+                            if(findAndSync(session.support_items, `lesson_support_sessions[${sIndex}].support_items`)) return;
+                        });
+                    } else {
+                         (targetData.lesson_content_sessions || []).forEach((session, sIndex) => {
+                            if(findAndSync(session.features, `lesson_content_sessions[${sIndex}].features`)) return;
+                        });
+                    }
                 }
 
                 function handleInputChange(e) {
                     const target = e.target;
                     const path = target.getAttribute('data-path');
-                    if (path) {
+                    const source = target.closest('.editor-column').getAttribute('data-source');
+                    if (path && source) {
                         let value;
-                        if (target.type === 'checkbox') {
-                            value = target.checked;
-                        } else if (target.tagName === 'SELECT') {
-                            value = isNaN(parseInt(target.value)) ? target.value : parseInt(target.value);
-                        } else {
-                            value = target.value;
-                        }
-                        setNestedProperty(currentLessonData, path, value);
+                        if (target.type === 'checkbox') value = target.checked;
+                        else if (target.tagName === 'SELECT') value = isNaN(parseInt(target.value)) ? target.value : parseInt(target.value);
+                        else value = target.value;
+                        updateSharedData(source, path, value);
+                        renderSideBySideEditor(); // Re-render to show sync
                     }
                 }
                 
-                function renderEditor() {
-                    destroyActiveEditor(false); 
-                    let html = ``;
-                    html += `<h2 class="section-header">Lesson Overview</h2><div data-path="lesson_overview_items" class="sortable-list">`;
-                    (currentLessonData.lesson_overview_items || []).forEach((feature, index) => { html += renderFeature(feature, `lesson_overview_items[${index}]`); });
-                    html += `</div>`;
-                    if (currentLessonData.lesson_support_sessions) { // TIG file
-                        (currentLessonData.lesson_support_sessions || []).forEach((session, sIndex) => {
+                function renderSideBySideEditor() {
+                    destroyActiveEditor(false);
+                    let html = `<div class="side-by-side-container">
+                                    <div class="editor-column" data-source="srb">
+                                        <div class="column-header">Student View <small>(SRB)</small></div>
+                                        ${renderColumnContent('srb')}
+                                    </div>
+                                    <div class="editor-column" data-source="tig">
+                                        <div class="column-header">Teacher View <small>(TIG)</small></div>
+                                        ${renderColumnContent('tig')}
+                                    </div>
+                                </div>`;
+                    mainContent.innerHTML = html;
+                }
+
+                function renderColumnContent(source) {
+                    const data = source === 'srb' ? currentSrbData : currentTigData;
+                    if (!data) return '<div class="loader">Data not loaded.</div>';
+                    let html = `<h2 class="section-header">Lesson Overview</h2>`;
+                    (data.lesson_overview_items || []).forEach((feature, index) => {
+                        html += renderFeature(feature, `lesson_overview_items[${index}]`, source);
+                    });
+
+                    if (source === 'srb' && data.lesson_content_sessions) {
+                        (data.lesson_content_sessions || []).forEach((session, sIndex) => {
+                            html += `<h2 class="section-header">Lesson Content: Session ${session.session}</h2>`;
+                            (session.features || []).forEach((feature, fIndex) => {
+                                html += renderFeature(feature, `lesson_content_sessions[${sIndex}].features[${fIndex}]`, source);
+                            });
+                        });
+                    } else if (source === 'tig' && data.lesson_support_sessions) {
+                        (data.lesson_support_sessions || []).forEach((session, sIndex) => {
                             html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
                             const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
                             const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
                             blockOrder.forEach(blockName => {
                                 if (blocks[blockName]) {
-                                    html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content sortable-list" data-path="lesson_support_sessions[${sIndex}].support_items">`;
-                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); html += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`); });
+                                    html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
+                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); html += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`, source); });
                                     html += `</div></div>`;
                                 }
                             });
                         });
-                    } else if (currentLessonData.lesson_content_sessions) { // SRB file
-                        (currentLessonData.lesson_content_sessions || []).forEach((session, sIndex) => {
-                            html += `<h2 class="section-header">Lesson Content: Session ${session.session}</h2>`;
-                            html += `<div class="block-group"><div class="block-group-content sortable-list" data-path="lesson_content_sessions[${sIndex}].features">`;
-                            (session.features || []).forEach((feature, fIndex) => { html += renderFeature(feature, `lesson_content_sessions[${sIndex}].features[${fIndex}]`); });
-                            html += `</div></div>`;
-                        });
                     }
-                    mainContent.innerHTML = html;
+                    return html;
                 }
-                
-                function renderFeature(feature, path) {
+
+                function renderFeature(feature, path, source) {
+                    if (!feature || !feature.feature_data) return ''; // Safety check
                     if (feature.feature_data.data_type === 'static_header') {
-                        return `<div class="static-header-card" data-path="${path}">${feature.feature_title}</div>`;
+                         return `<div class="static-header-card" data-path="${path}">
+                                    ${feature.feature_title}
+                                    ${feature.feature_data.mode ? `<span class="feature-type-badge">${feature.feature_data.mode}</span>` : ''}
+                                </div>`;
                     }
                     if (feature.feature_data.data_type === 'activity_header') {
                         let activityNumberHtml = '';
@@ -220,17 +317,17 @@
                         return `<div class="static-header-card" data-path="${path}">${activityNumberHtml} <input type="text" value="${feature.feature_title}" data-path="${path}.feature_title"/></div>`;
                     }
                     
-                    const contentHtml = renderFeatureContent(feature, path);
+                    const contentHtml = renderFeatureContent(feature, path, source);
                     return `<div class="feature-card" data-path="${path}">
                                 <div class="feature-header"><h3>${feature.feature_title}</h3><span class="feature-type-badge">${feature.feature_type}</span></div>
                                 <div class="feature-content">${contentHtml}</div>
                             </div>`;
                 }
 
-                function renderFeatureContent(feature, path) {
+                function renderFeatureContent(feature, path, source) {
                     const dataType = feature.feature_data.data_type;
                     const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
-                        let content = getNestedProperty(currentLessonData, contentPath);
+                        let content = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, contentPath);
                         if (isList) { content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; }
                         return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
                     };
@@ -239,29 +336,28 @@
                         case 'list': 
                         case 'rich_text_list':
                             const listTag = (feature.feature_data.is_numbered || feature.feature_type === 'mlr') ? 'ol' : 'ul';
-                            return createEditableDiv(`${path}.feature_data.items`, true, listTag);
+                            return createEditableDiv(path + '.feature_data.items', true, listTag);
                         
                         case 'rich_text':
                             if (feature.feature_type === 'learning_prompt') {
-                                const isTig = currentLessonData.lesson_audience === 'tch';
-                                const question = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_question`);
-                                const answer = getNestedProperty(currentLessonData, `${path}.feature_data.prompt_answer`);
-                                if (isTig) {
+                                const question = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, path + '.feature_data.prompt_question');
+                                const answer = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, path + '.feature_data.prompt_answer');
+                                if (source === 'tig') {
                                     return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
-                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(`${path}.feature_data.prompt_answer`)}</div>`;
+                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(path + '.feature_data.prompt_answer')}</div>`;
                                 } else {
-                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(`${path}.feature_data.prompt_question`)}</div>
+                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(path + '.feature_data.prompt_question')}</div>
                                             <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
                                 }
-                            } else { return createEditableDiv(`${path}.feature_data.content`); }
+                            } else { return createEditableDiv(path + '.feature_data.content'); }
 
                         case 'prompt': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
-                                    <div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
+                                    <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
                         
                         case 'qti_assessment_item':
                             const itemData = feature.feature_data;
-                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(`${path}.feature_data.item_body.stem`)}</div>`;
+                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
                             (itemData.item_body.interactions || []).forEach((interaction, i) => {
                                 const respDeclIndex = (itemData.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
                                 if (respDeclIndex > -1) {
@@ -321,6 +417,10 @@
 
                         case 'detailed_activity_facilitation': 
                             const facData = feature.feature_data; let promptHtml = ''; 
+                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
+                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
+                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
+                            modeDropdown += `</select>`;
                             if (facData.activate_prompt) {
                                 promptHtml = `<div class="structured-list-item">
                                                 <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
@@ -328,7 +428,7 @@
                                             </div>`;
                             } 
                             return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
-                                    <div class="form-field"><label>Mode</label><div class="read-only-content">${facData.mode || 'N/A'}</div></div>
+                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
                                     ${promptHtml}
                                     <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         
@@ -346,7 +446,7 @@
                     }
                 }
 
-                function saveChanges() { console.log(JSON.stringify(currentLessonData, null, 2)); alert("Data saved to console. Check developer tools."); }
+                function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
                 
                 init();
             }
