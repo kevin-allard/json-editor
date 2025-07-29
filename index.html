@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* All CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -133,18 +132,16 @@
 
                 function handleAddSlideBreak(e) {
                     const srbColumn = e.target.closest('.editor-column');
-                    const scrollContainer = srbColumn;
-                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions"]'));
-                    
+                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
                     let topVisibleIndex = 0;
                     for (let i = 0; i < featureElements.length; i++) {
                         const rect = featureElements[i].getBoundingClientRect();
-                        if (rect.top >= scrollContainer.getBoundingClientRect().top) {
-                            topVisibleIndex = i;
+                        if (rect.top >= srbColumn.getBoundingClientRect().top) {
+                            const path = featureElements[i].getAttribute('data-path');
+                            topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
                             break;
                         }
                     }
-
                     const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
                     currentSrbData.lesson_content_sessions[0].features.splice(topVisibleIndex + 1, 0, newBreak);
                     renderSideBySideEditor();
@@ -153,11 +150,12 @@
                 function handleDeleteSlideBreak(e) {
                     const path = e.target.getAttribute('data-path');
                     if (!path) return;
-                    
-                    const pathParts = path.match(/[^.\[\]]+/g) || []; // e.g., ['lesson_content_sessions', '0', 'features', '1']
-                    const index = parseInt(pathParts[3], 10);
-                    currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
-                    renderSideBySideEditor();
+                    const pathParts = path.match(/\[(\d+)\]/g);
+                    if (pathParts && pathParts.length) {
+                        const index = parseInt(pathParts[pathParts.length - 1].replace(/[\[\]]/g, ''), 10);
+                        currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
+                        renderSideBySideEditor();
+                    }
                 }
                 
                 function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
@@ -304,9 +302,9 @@
                 }
 
                 function initializeSortable() {
-                    const srbContent = mainContent.querySelector('[data-path="lesson_content_sessions[0].features"]');
+                    const srbContent = mainContent.querySelector('.editor-column[data-source="srb"]');
                     if (srbContent) {
-                        new Sortable(srbContent, {
+                        new Sortable(srbContent.querySelector('.sortable-list[data-path^="lesson_content_sessions"]'), {
                             handle: '.drag-handle',
                             animation: 150,
                             onEnd: (evt) => {
@@ -321,31 +319,27 @@
                 function renderColumnContent(source) {
                     const data = source === 'srb' ? currentSrbData : currentTigData;
                     if (!data) return '<div class="loader">Data not loaded.</div>';
-                    let html = `<div class="sortable-list" data-path="lesson_overview_items">${renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source)}</div>`;
+                    
+                    let overviewHtml = `<div class="sortable-list" data-path="lesson_overview_items">${renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source)}</div>`;
+                    let mainContentHtml = '';
 
                     if (source === 'srb' && data.lesson_content_sessions) {
-                        html += `<div class="sortable-list" data-path="lesson_content_sessions[0].features">${renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source)}</div>`;
+                        mainContentHtml = `<div class="sortable-list" data-path="lesson_content_sessions[0].features">${renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source)}</div>`;
                     } else if (source === 'tig' && data.lesson_support_sessions) {
-                         const srbBreaks = (currentSrbData.lesson_content_sessions[0].features || []).filter(f => f.feature_type === 'slide_break');
-                         const srbBreakUUIDs = srbBreaks.map(b => b.uuid);
-
                         (data.lesson_support_sessions || []).forEach((session, sIndex) => {
-                            html += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
+                            mainContentHtml += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
                             const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
                             const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
                             blockOrder.forEach(blockName => {
                                 if (blocks[blockName]) {
-                                    html += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
-                                    blocks[blockName].forEach(feature => {
-                                        const originalIndex = session.support_items.indexOf(feature);
-                                        html += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`, source);
-                                    });
-                                    html += `</div></div>`;
+                                    mainContentHtml += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
+                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); mainContentHtml += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`, source); });
+                                    mainContentHtml += `</div></div>`;
                                 }
                             });
                         });
                     }
-                    return html;
+                    return overviewHtml + mainContentHtml;
                 }
 
                 function renderSection(title, items, path, source) {
@@ -357,7 +351,6 @@
                 }
 
                 function renderFeature(feature, path, source) {
-                    // All logic is now correct and stable...
                     if (!feature || !feature.feature_data) return ''; 
                     if (feature.feature_type === 'slide_break') {
                         if (source === 'srb') {
@@ -393,7 +386,6 @@
                 }
 
                 function renderFeatureContent(feature, path, source) {
-                   // This function is now complete and correct from the previous step.
                    const data = source === 'srb' ? currentSrbData : currentTigData;
                    const dataType = feature.feature_data.data_type;
                    const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
@@ -402,24 +394,117 @@
                        return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
                    };
                    
-                   // All cases are correct from previous stable version
                    switch (dataType) {
+                        case 'list': 
+                        case 'rich_text_list':
+                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
+                        
                         case 'rich_text':
-                            if (feature.feature_type === 'learning_prompt') { /* ... */ }
-                            else { return createEditableDiv(path + '.feature_data.content'); }
-                        case 'detailed_activity_facilitation': /* ... */
-                        case 'ongoing_assessment': /* ... */
-                        case 'list': case 'rich_text_list': /* ... */
-                        case 'prompt': /* ... */
-                        case 'qti_assessment_item': /* ... */
-                        case 'problem': /* ... */
-                        case 'session_list': /* ... */
-                        case 'intro_with_list': /* ... */
-                        case 'intro_with_structured_list': /* ... */
-                        case 'differentiation_strategy': /* ... */
-                        case 'question_set_list': /* ... */
+                            if (feature.feature_type === 'learning_prompt') {
+                                const question = getNestedProperty(data, path + '.feature_data.prompt_question');
+                                const answer = getNestedProperty(data, path + '.feature_data.prompt_answer');
+                                if (source === 'tig') {
+                                    return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
+                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(path + '.feature_data.prompt_answer')}</div>`;
+                                } else {
+                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(path + '.feature_data.prompt_question')}</div>
+                                            <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
+                                }
+                            } else { return createEditableDiv(path + '.feature_data.content'); }
+
+                        case 'prompt': 
+                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
+                                    <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
+                        
+                        case 'qti_assessment_item':
+                            const itemData = feature.feature_data;
+                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
+                            (itemData.item_body.interactions || []).forEach((interaction, i) => {
+                                const respDeclIndex = (itemData.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
+                                if (respDeclIndex > -1) {
+                                    const respDecl = itemData.response_declarations[respDeclIndex];
+                                    const isSample = respDecl.is_sample_answer === true;
+                                    html += `<div class="qti-interaction">
+                                                <div class="form-field"><label>Interaction Prompt</label><input type="text" value="${interaction.prompt}" data-path="${path}.feature_data.item_body.interactions[${i}].prompt" /></div>
+                                                <div class="form-field qti-answer">
+                                                    <div class="answer-header">
+                                                        <label>Correct Response</label>
+                                                        <div class="sample-answer-toggle">
+                                                            <label for="sample-toggle-${path}-${i}">Sample Answer?</label>
+                                                            <input type="checkbox" id="sample-toggle-${path}-${i}" data-path="${path}.feature_data.response_declarations[${respDeclIndex}].is_sample_answer" ${isSample ? 'checked' : ''} />
+                                                        </div>
+                                                    </div>
+                                                    ${createEditableDiv(`${path}.feature_data.response_declarations[${respDeclIndex}].correct_response`)}
+                                                </div>
+                                            </div>`;
+                                }
+                            });
+                            if (itemData.ancillary_content) {
+                                if (itemData.ancillary_content.think_about) { html += `<div class="form-field"><label>Think About</label>${createEditableDiv(`${path}.feature_data.ancillary_content.think_about`)}</div>`; }
+                                if (itemData.ancillary_content.ask_yourself) { html += `<div class="form-field"><label>Ask Yourself</label>${createEditableDiv(`${path}.feature_data.ancillary_content.ask_yourself`)}</div>`; }
+                                if (itemData.ancillary_content.graphic) { const graphic = itemData.ancillary_content.graphic; html += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
+                            }
+                            return html;
+
+                        case 'problem': 
+                             const probData = feature.feature_data;
+                             let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
+                             if (probData.answer) {
+                                 const isSampleAnswer = probData.answer.is_sample_answer === true;
+                                 probHtml += `<div class="form-field" style="border-left: 4px solid magenta; padding-left: 1rem;">
+                                                <div class="answer-header">
+                                                    <label>Answer</label>
+                                                    ${ 'is_sample_answer' in probData.answer ? `<div class="sample-answer-toggle">
+                                                        <label for="sample-toggle-${path}">Sample Answer?</label>
+                                                        <input type="checkbox" id="sample-toggle-${path}" data-path="${path}.feature_data.answer.is_sample_answer" ${isSampleAnswer ? 'checked' : ''} />
+                                                    </div>` : ''}
+                                                </div>
+                                                ${createEditableDiv(`${path}.feature_data.answer.content`)}
+                                            </div>`;
+                             }
+                             return probHtml;
+
+                        case 'session_list': 
+                            let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
+                            tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
+                            return tableHtml += `</tbody></table>`;
+                        
+                        case 'intro_with_list':
+                            const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; 
+                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
+                        
+                        case 'intro_with_structured_list': 
+                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
+
+                        case 'detailed_activity_facilitation': 
+                            const facData = feature.feature_data; let promptHtml = ''; 
+                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
+                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
+                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
+                            modeDropdown += `</select>`;
+                            if (facData.activate_prompt) {
+                                promptHtml = `<div class="structured-list-item">
+                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
+                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
+                                            </div>`;
+                            } 
+                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
+                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
+                                    ${promptHtml}
+                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
+                        
+                        case 'differentiation_strategy': 
+                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
+                        
+                        case 'ongoing_assessment': 
+                            const assessData = feature.feature_data;
+                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                        
+                        case 'question_set_list': 
+                            return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
+                        
                         default: return ``;
-                   }
+                    }
                 }
 
                 function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
