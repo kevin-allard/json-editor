@@ -1,518 +1,598 @@
-<!-- Editor Version: rc1.beta.0.48 -->
 <!DOCTYPE html>
-<html lang="en">
+<html class="no-js">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Content Editor (Side-by-Side)</title>
-    
-    <script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/plugin.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, user-scalable=no">
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-        :root {
-            --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
-            --md-border-color: #e0e0e0; --md-text-primary: #212121; --md-text-secondary: #757575;
-            --header-height: 90px;
-        }
-        html, body { height: 100%; margin: 0; overflow: hidden; }
-        body { font-family: 'Roboto', sans-serif; background-color: var(--md-bg-main); color: var(--md-text-primary); }
-        .editor-wrapper { display: flex; flex-direction: column; height: 100vh; }
-        .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
-        #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
-        .editor-column { flex: 1; min-width: 0; overflow-y: auto; padding-right: 12px; padding-bottom: 50vh; }
-        .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; }
-        .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
-        .srb-column-header { display: flex; justify-content: space-between; align-items: center; }
-        .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
-        .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
-        .slide-break-feature button { background: #ffcdd2; color: #c62828; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
-        .slide-break-indicator { height: 2px; background-image: linear-gradient(to right, var(--md-primary-color) 33%, rgba(255,255,255,0) 0%); background-position: bottom; background-size: 3px 1px; background-repeat: repeat-x; margin: 24px 0; }
-        .drag-handle { cursor: grab; }
-        .selector-group { position: relative; }
-        .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
-        .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-        .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
-        .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
-        .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
-        .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; }
-        .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-text-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--md-border-color); border-radius: 8px 8px 0 0; }
-        .block-group-content { padding: 8px 24px 24px 24px; }
-        .feature-card { background-color: var(--md-bg-card); border-radius: 4px; margin-bottom: 20px; box-shadow: var(--md-elevation-1); }
-        .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
-        .feature-header h3 { margin: 0; font-size: 18px; font-weight: 500; flex-grow: 1; }
-        .feature-header .feature-type-badge { font-size: 12px; color: var(--md-primary-color); background-color: #e8eaf6; padding: 4px 8px; border-radius: 12px; font-family: monospace; }
-        .feature-content { padding: 24px; }
-        .form-field { margin-bottom: 20px; }
-        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
-        .form-field input[type="text"], textarea, select { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
-        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); width: 100%; }
-        .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
-        .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
-        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
-        .static-header-card { display: flex; align-items: center; gap: 16px; padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
-        .static-header-card select { flex: 0 0 90px; }
-        .static-header-card input { flex: 1 1 auto; }
-        .qti-interaction { border-left: 4px solid var(--md-primary-color); padding-left: 16px; margin-top: 16px; }
-        .qti-answer { border-left: 4px solid magenta; padding-left: 16px; }
-        .graphic-placeholder { border: 2px dashed var(--md-border-color); padding: 16px; text-align: center; color: var(--md-text-secondary); border-radius: 4px; }
-        .answer-header { display: flex; justify-content: space-between; align-items: center; }
-        .sample-answer-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
-        th { font-weight: 500; color: var(--md-text-secondary); }
-        .structured-list-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
-    </style>
+<script src="META-INF/data.js"></script>
+
+<link rel="stylesheet" href="sdk/0.0.2/css/styles.min.css">
+
+
+<script src="sdk/0.0.2/src/kitaboo-0.0.2.js"></script>
+
+<script type="text/javascript" src="sdk/0.0.2/localization/modernizr.js"></script>
+<script type="text/javascript" src="sdk/0.0.2/localization/jquery_localize.js"></script>
+<script type="text/javascript" src="kitaboo-author-button-data.js"></script>
+
+
+
+<script>
+            var cloudbook = "";
+			var playerMenuSet = false;
+		document.onreadystatechange = function () {
+			if (document.readyState == "complete") {
+				var config = {
+					isKitabooSearchsupport: true,
+					isminiplayer: true,
+					isofflinechromesupport: false
+				};
+				window.book = new eBook(cloudbook, config);
+				var tocitems = window.book.bookdata.toc;
+				var tocitems1 = window.book.bookdata.headerToc;
+
+				if(tocitems.length <= 1 && typeof prebook.isEmptyMenuHide != "undefined" && prebook.isEmptyMenuHide == true && !prebook.isOldSkin){
+					if(tocitems1.length <= 1){
+						if(tocitems1.length == 0 || (tocitems1 && typeof tocitems1[0].headers == "undefined") || (tocitems1[0].headers.length == 0)){
+							$('.toc').hide();
+						}
+					}
+				}
+
+				book.Onaction("book:loadstart", function () {
+
+				});
+
+				book.Onaction("book:loadend", function () {
+
+					window.book.getMetaData(function (data) {
+						document.getElementById('name').innerText = data.bookTitle;
+						buildTOC();
+					});
+				});
+
+				book.Onaction("book:chapterDisplayed", function () {
+
+					if (viewer.isMiniplayer) {
+
+
+
+						var currentpage = window.viewer.currentChapter.Index;
+
+						var total = window.viewer.chapter.length;
+						document.getElementById('count').innerText = "" + (currentpage + 1) + " " + window.localeJson.of + " " + total;
+						document.getElementById('gradableActivityPageCount').innerHTML = "<span class='rubik700'>" + (currentpage + 1) + "</span> / " + total;
+						if($('#bottompanal4').length){
+							let prev = $('#bottompanal4 #gradableActivityPageCount').parents('.pagenavigation').find('#prev');
+							let next = $('#bottompanal4 #gradableActivityPageCount').parents('.pagenavigation').find('#next');
+							prev.removeClass('disabled');
+							next.removeClass('disabled');
+							if(currentpage == 0){
+								prev.addClass('disabled');
+							}
+							if((currentpage+1) == total){
+								next.addClass('disabled');
+							}
+						}
+						document.body.style.overflow = "hidden";
+						document.body.style.margin = 0;
+					}
+					loadPlayer();
+					// if(!playerMenuSet && prebook && typeof prebook.isOldSkin != "undefined" && prebook.isOldSkin == true){
+					// 	$('.bottompanal').removeClass('hide');
+					// 	$('.bottompanal_ladscape1').addClass('hide');
+					// 	$('.bottompanal_ladscape2').addClass('hide');
+					// 	$('.bottompanal_ladscape3').addClass('hide');
+					// 	$('.bottompanel4').addClass('hide');
+					// 	playerMenuSet = true;
+					// }else if(!playerMenuSet && prebook && typeof prebook.isOldSkin != "undefined" && prebook.isOldSkin == false){
+					// 	$('.bottompanal').addClass('hide');
+					// 	$('.bottompanal_ladscape1').addClass('hide');
+					// 	$('.bottompanal_ladscape2').addClass('hide');
+					// 	$('.bottompanal_ladscape3').addClass('hide');
+					// 	$('.bottompanel4').addClass('hide');
+					// 	if(typeof prebook.isNewPlayerSkin != "undefined" && prebook.isNewPlayerSkin == true){
+					// 		$('.bottompanel4').removeClass('hide');
+					// 	}else{
+					// 		$('.bottompanal').removeClass('hide');
+					// 	}
+					// 	playerMenuSet = true;
+					// }
+					if (window.viewer.doc != undefined) {
+						var docWindow = window.viewer.doc.defaultView;
+
+						var docBody = window.viewer.doc.body;
+						docBody.click(function () {
+							checkPanel();
+							addFontStyle();
+						});
+
+					}
+
+					if (JSON.parse("true") == true) {
+						$('#toppanel').css({
+							'display': 'none'
+						});
+					}
+					$(docWindow).scroll(function () {
+
+						if ($(docWindow).scrollTop() == 0) {
+							$('.maincontainer').css({
+								'-webkit-box-shadow': 'none',
+								'-moz-box-shadow': 'none',
+								'box-shadow': 'none',
+								'-webkit-transition': 'box-shadow 0.3s',
+								'transition': 'box-shadow 0.3s'
+							});
+						} else {
+							$('.maincontainer').css({
+								'-webkit-box-shadow': 'inset 0px 5px 25px 5px rgba(99,96,86,1)',
+								'-moz-box-shadow': ' 0px 5px  11px 1px  rgba(99,96,86,1)',
+								'box-shadow': ' 0px 5px  11px 1px rgba(99,96,86,1)',
+								'-webkit-transition': 'box-shadow 0.3s',
+								'transition': 'box-shadow 0.3s'
+							});
+						}
+					});
+
+
+
+					$('#tocchild').scroll(function () {
+						if ($('#tocchild').scrollTop() == 0) {
+							$('#tocchild').css({
+								'-webkit-box-shadow': 'none',
+								'-moz-box-shadow': 'none',
+								'box-shadow': 'none',
+								'-webkit-transition': 'box-shadow 0.3s',
+								'transition': 'box-shadow 0.3s'
+							});
+						} else {
+							$('#tocchild').css({
+								'-webkit-box-shadow': 'inset 0px 10px 10px -3px rgba(99,96,86,0.3)',
+								'-moz-box-shadow': 'inset 0px 10px 10px -3px rgba(99,96,86,0.3)',
+								'box-shadow': 'inset 0px 10px 10px -3px rgba(99,96,86,0.3)',
+								'-webkit-transition': 'box-shadow 0.3s',
+								'transition': 'box-shadow 0.3s'
+							});
+						}
+					});
+
+
+					$('.maincontainer iframe').contents().find("head")
+						.append($("<style type='text/css'>  ::-webkit-scrollbar {	width: 5px;}::-webkit-scrollbar-track {-webkit-box-shadow: inset 0 0 0;-webkit-border-radius: 0px;	border-radius: 0px;}::-webkit-scrollbar-thumb {-webkit-border-radius: 0px;	border-radius: 0px;	background: #d6d6d6;-webkit-box-shadow: inset 0 0 6px #d6d6d6;}::-webkit-scrollbar-thumb:window-inactive {background: #d6d6d6;}  </style>"
+						));
+
+
+
+					$('#toppanel, #bottompanal').on('click', function (event) {
+						if (event.target == $('.toc')[0] || event.target == $('#menu')[0]) {
+							event.preventDefault();
+							event.stopPropagation();
+						} else {
+							checkPanel();
+						}
+					});
+				});
+				$(".bottompanel4 .showHideBottomPanel").click(function () {
+					if($('.gradableActivityBottomPanel').hasClass('hidden')){
+						$(this).find('.arrowIcon').css('transform', 'rotate(0deg)');
+						$('.bottompanel4').css('transform', 'translateY(0px)');
+						$('.gradableActivityBottomPanel').removeClass('hidden');
+						$('.maincontainer').css('height', 'calc(100% - 50px)');
+					} else {
+						$(this).find('.arrowIcon').css('transform', 'rotate(180deg)');
+						$('.bottompanel4').css('transform', 'translateY(50px)');
+						$('.gradableActivityBottomPanel').addClass('hidden');
+						$('.maincontainer').css('height', '100%');
+					}
+				});
+				// $(".bottompanel4 .hideBottomPanel").click(function () {
+				// 	$('.hideBottomPanel').addClass('hide');
+				// 	$('.gradableActivityBottomPanel').addClass('hide');
+				// 	$('.showBottomPanel').removeClass('hide');
+				// });
+			}
+		}
+
+		function checkPanel() {
+			if ($('#tocitems').hasClass('isOpened') && document.getElementById('tocitems').style.display == 'block') {
+				document.getElementById('tocitems').style.display = 'none';
+				document.getElementsByClassName("toc")[0].classList.remove("highlightBackground");
+			} else {
+				$('#tocitems').removeClass('isOpened');
+			}
+		}
+
+		var toctreeview;
+		function onClose() {
+			alert("Please close the window");
+		}
+
+		function buildTOC() {
+
+
+			var elements = document.getElementById('tocholder');
+			elements.innerHTML = "<div id='tree'></div>";
+			var tocitems = window.book.bookdata.toc;
+			var tocitems1 = window.book.bookdata.headerToc;
+			var tree = "";
+			if (tocitems1 != "" && typeof tocitems1 != 'undefined') {
+				for (var i = 0; i < tocitems.length; i++) {
+					if (!tocitems1[i]) {
+						tocitems1[i] = {};
+					}
+					tocitems1[i].href = tocitems[i].href;
+					tocitems1[i].cfi = tocitems[i].cfi;
+					tocitems1[i].spinePos = tocitems[i].spinePos;
+					if (!tocitems1[i].title || tocitems1[i].title == "") {
+						tocitems1[i].title = tocitems[i].label;
+					}
+					if (typeof (tocitems1[i].headers) != 'undefined') {
+						if (tocitems1[i].headers.length > 0) {
+							tocSubHeader = tocitems1[i].headers;
+						}
+					}
+				}
+				tree = tocitems1;
+			}
+			else {
+				tree = tocitems;
+			}
+			var treeLength = tree.length;
+
+			toctreeview = new TreeView(tree, 'tree');
+
+
+			switch (true) {
+				case (treeLength == 0):
+					document.getElementById("tocitems").style.cssText += 'height: 90px; text-align: center';
+					document.getElementById("tocchild").innerHTML = '<span class="noResultFound">Results not found.</span>';
+					break;
+				case (treeLength == 1):
+					document.getElementById("tocitems").style.cssText += 'height: 65px';
+					break;
+				case (treeLength == 2):
+					document.getElementById("tocitems").style.cssText += 'height: 110px';
+					break;
+				case (treeLength == 3):
+					document.getElementById("tocitems").style.cssText += 'height: 160px';
+					break;
+				case (treeLength == 4):
+					document.getElementById("tocitems").style.cssText += 'height: 210px';
+					break;
+				case (treeLength == 5):
+					document.getElementById("tocitems").style.cssText += 'height: 260px';
+					break;
+				case (treeLength == 6):
+					document.getElementById("tocitems").style.cssText += 'height: 310px';
+					break;
+				case (treeLength == 7):
+					document.getElementById("tocitems").style.cssText += 'height: 360px';
+					break;
+				case (treeLength == 8):
+					document.getElementById("tocitems").style.cssText += 'height: 420px';
+					break;
+				case (treeLength == 9):
+					document.getElementById("tocitems").style.cssText += 'height: 480px';
+					break;
+				default:
+					document.getElementById("tocitems").style.cssText += 'height: 530px';
+			}
+
+			toctreeview.on('select', function (e) {
+				$('.tree-leaf-text').removeClass('bold_style');
+				$(e.target.target).addClass('bold_style');
+				loadChapterFromTOC(e.data);
+				document.getElementById('tocitems').style.display = 'none';
+				document.getElementsByClassName("toc")[0].classList.remove("highlightBackground");
+			});
+			toctreeview.on('expand', function (e) {
+				console.log('expand');
+			});
+			toctreeview.on('collapse', function () {
+				console.log('collapse');
+			});
+			toctreeview.on('expandAll', function () {
+				console.log('expand all');
+			});
+			toctreeview.on('collapseAll', function () {
+				console.log('collapse all');
+			});
+		}
+
+		function toggleToc() {
+			if (document.getElementById('tocitems').style.display == "" || document.getElementById('tocitems').style.display == 'none') {
+				document.getElementById('tocitems').classList.add("isOpened");
+				document.getElementById('tocitems').style.display = 'block';
+				document.getElementsByClassName("toc")[0].classList.add("highlightBackground");
+				buildTOC();
+				addFontStyle();
+			} else {
+				document.getElementById('tocitems').classList.remove("isOpened");
+				document.getElementById('tocitems').style.display = 'none';
+				document.getElementsByClassName("toc")[0].classList.remove("highlightBackground");
+			}
+
+		}
+
+		function addFontStyle() {
+			var itemlist = $('[data-item]');
+			$('.tree-leaf-text').removeClass('bold_style');
+			for (var i = 0; i < itemlist.length; i++) {
+				if (viewer.currentHeader != "" && typeof viewer.currentHeader != 'undefined') {
+					if (viewer.currentHeader == JSON.parse($(itemlist[i]).attr('data-item')).hashValue) {
+						var itemLabel = JSON.parse($(itemlist[i]).attr('data-item')).title;
+						$('.left #name').html(itemLabel);
+						$(itemlist[i]).removeClass('bold_style');
+						$($(itemlist[i])[0]).addClass('bold_style');
+					}
+					else {
+						$(itemlist[i]).removeClass('bold_style');
+					}
+				} else {
+					if (viewer.currentChapter.Index == JSON.parse($(itemlist[i]).attr('data-item')).spinePos) {
+						var itemLabel = "";
+						if (typeof JSON.parse($(itemlist[i]).attr('data-item')).title != 'undefined') {
+							itemLabel = JSON.parse($(itemlist[i]).attr('data-item')).title;
+						}
+						else {
+							itemLabel = JSON.parse($(itemlist[i]).attr('data-item')).label;
+						}
+						$('.left #name').html(itemLabel);
+						$(itemlist[i]).removeClass('bold_style');
+						$($(itemlist[i])[0]).addClass('bold_style');
+					} else {
+						$(itemlist[i]).removeClass('bold_style');
+					}
+				}
+			}
+		}
+		window.addEventListener("message", playerLoadedCallback, false);
+		var sccomData = {};
+
+		function playerLoadedCallback(event, data) {
+			if (event.data.player == 'ready') {
+				var playerData = { "buttonData": buttonData, "sccomData": sccomData }
+				document.getElementById('page').contentWindow.postMessage(playerData, '*');
+			}
+			if (event.data.scormdata == 'ready') {
+				sccomData = event.data.scormJsonData;
+			}
+		}
+
+		$(document).ready(function(){
+                window.localeJson = {
+	"incorrect_last_try" : "That's incorrect, this was your last attempt.",
+	"incorrect_message" : "Please try again",
+	"missed_words" : "You might have missed some words",
+	"submit" : "Submit",
+	"reset_me" : "Reset",
+	"show_me" : "Show Me",
+	"try_again" : "Try Again",
+	"strike" : "Strikethrough",
+	"of" :"of",
+	"correct" : "This is correct",
+        "select_answer":"Select Answer"
+};window.applyAllStyleSettingJson={"h2-style":{"styleSettingFlag":false,"styleSettingJson":{"headerDataText":""}},"paragraph":{"styleSettingFlag":false,"styleSettingJson":{"header":""}},"h5-style":{"styleSettingFlag":false,"styleSettingJson":{"headerDataText":""}},"defaultFontName":"","h3-style":{"styleSettingFlag":false,"styleSettingJson":{"headerDataText":""}},"chapter-headingNew-h1":{"styleSettingFlag":false,"styleSettingJson":{"authorName":"","headerTitleText":"","chapterheadingTitleText":"","headerChapterNo":""}},"h6-style":{"styleSettingFlag":false,"styleSettingJson":{"headerDataText":""}},"h4-style":{"styleSettingFlag":false,"styleSettingJson":{"headerDataText":""}}}
+				// var opts = { language: "en",pathPrefix:"OEBPS/localization/"};				
+				// $("[data-localize]").localize("player", opts);
+                // setTimeout(function(){
+                //     document.getElementById('page').contentWindow.postMessage(buttonData,'*');
+                // },500);
+		    });
+
+			function hideAllPlayerSkin(){
+				$('.bottompanal').addClass('hide');
+				$('.bottompanal_ladscape1').addClass('hide');
+				$('.bottompanal_ladscape2').addClass('hide');
+				$('.bottompanal_ladscape3').addClass('hide');
+				$('.bottompanel4').addClass('hide');
+			}
+
+			function loadPlayer(){
+				hideAllPlayerSkin();
+				if(prebook && prebook.isOldSkin){
+					$('.bottompanal').removeClass('hide');
+				}else if(prebook && prebook.isLandscapeActivity){
+					var lesson_location = (viewer.currentChapter && viewer.currentChapter.Index) ? viewer.currentChapter.Index : 0;
+					if(window.top.API && typeof (window.top.API.LMSGetValue('cmi.core.lesson_location') == "number")){
+						lesson_location = window.top.API.LMSGetValue('cmi.core.lesson_location') != 0 ? window.top.API.LMSGetValue('cmi.core.lesson_location') - 1 : 0;
+					}
+					if (lesson_location == 0) {
+						$('.bottompanal_ladscape1').removeClass('hide');
+						$('.startbtn_text').text(window.localeJson.StartCourseText);
+					} else if (lesson_location == viewer.chapter.length - 1) {
+						$('.bottompanal_ladscape3').removeClass('hide');
+						$('.back_btn').text(window.localeJson.previousBtnTxt);
+						$('.finshBtn_text').text(window.localeJson.endBtnText);
+					} else {
+						$('.bottompanal_ladscape2').removeClass('hide');
+						$('.btn_back_text').text(window.localeJson.previousBtnTxt);
+						$('.next_btn_text').text(window.localeJson.nextBtnText);
+					}
+				}else if(prebook && prebook.isNewPlayerSkin){
+					$('.bottompanel4').removeClass('hide');
+				}else{
+					$('.bottompanal').removeClass('hide');
+				}
+			}
+   
+			
+		// 	var isLandscape = false;
+		// 	function checkLandScapeMode(event, data) {
+		// 	if (typeof event.data.isLandscapeActivity != "undefined") {
+		// 		if (prebook && prebook.isOldSkin != "undefined" && !prebook.isOldSkin && event.data.isLandscapeActivity) {
+		// 			isLandscape = true;
+		// 			$('.bottompanal').addClass('hide');
+		// 			$('.bottompanal_ladscape1').addClass('hide');
+		// 			$('.bottompanal_ladscape2').addClass('hide');
+		// 			$('.bottompanal_ladscape3').addClass('hide');
+		// 			$('.bottompanel4').addClass('hide');
+		// 			var lesson_location = viewer.currentChapter.Index;
+		// 			var apiHandle = window.top.API;
+		// 			if (!apiHandle) {
+		// 				apiHandle = window.API;
+		// 				if (!apiHandle) {
+		// 					apiHandle = window.parent.API
+		// 				}
+		// 			}
+		// 			let firstTimeLoad = localStorage.getItem('playerLoadFirstTime');
+		// 			if (apiHandle && firstTimeLoad == 'true') {
+		// 				let tempNum = apiHandle.LMSGetValue('cmi.core.lesson_location');
+		// 				if (tempNum && typeof tempNum == 'number') {
+		// 					lesson_location = tempNum - 1;
+		// 				}
+		// 			}
+		// 			if (lesson_location == 0) {
+		// 				$('.bottompanal_ladscape1').removeClass('hide');
+		// 				$('.startbtn_text').text(event.data.StartCourseText);
+		// 			} else if (lesson_location == viewer.chapter.length - 1) {
+		// 				$('.bottompanal_ladscape3').removeClass('hide');
+		// 				$('.back_btn').text(event.data.previousBtnTxt);
+		// 				$('.finshBtn_text').text(event.data.endBtnText);
+		// 			} else {
+		// 				$('.bottompanal_ladscape2').removeClass('hide');
+		// 				$('.btn_back_text').text(event.data.previousBtnTxt);
+		// 				$('.next_btn_text').text(event.data.nextBtnText);
+		// 			}
+		// 			playerMenuSet = true;
+		// 		} else if(prebook && prebook.isOldSkin != "undefined" && !prebook.isOldSkin){
+		// 			$('.bottompanal').addClass('hide');
+		// 			$('.bottompanal_ladscape1').addClass('hide');
+		// 			$('.bottompanal_ladscape2').addClass('hide');
+		// 			$('.bottompanal_ladscape3').addClass('hide');
+		// 			$('.bottompanel4').addClass('hide');
+		// 			if(typeof prebook.isNewPlayerSkin != "undefined" && prebook.isNewPlayerSkin == true){
+		// 				$('.bottompanel4').removeClass('hide');
+		// 			}else{
+		// 				$('.bottompanal').removeClass('hide');
+		// 			}
+		// 			playerMenuSet = true;
+		// 		}
+		// 	}
+		// }
+
+		// function checkGradableActivity(event, data) {
+		// 	if (typeof event.data.isGradableActivity != "undefined") {
+		// 		if (!playerMenuSet && event.data.isGradableActivity == true && isLandscape == false) {
+		// 			$('.bottompanal').addClass('hide');
+		// 			$('.bottompanal_ladscape1').addClass('hide');
+		// 			$('.bottompanal_ladscape2').addClass('hide');
+		// 			$('.bottompanal_ladscape3').addClass('hide');
+		// 			$('.bottompanel4').addClass('hide');
+		// 			if(typeof prebook.isNewPlayerSkin != "undefined" && prebook.isNewPlayerSkin == true){
+		// 				$('.bottompanel4').removeClass('hide');
+		// 			}else{
+		// 				$('.bottompanal').removeClass('hide');
+		// 			}
+		// 			$('.back_btn').text(event.data.previousBtnTxt);
+		// 			$('.finshBtn_text').text(event.data.endBtnText);
+		// 			playerMenuSet = true;
+		// 		}
+		// 	}
+		// }
+		// window.addEventListener("message", checkLandScapeMode, false);
+		// window.addEventListener("message", checkGradableActivity, false);
+						
+        </script>
 </head>
 <body>
-    <div class="editor-wrapper">
-        <div class="editor-header">
-            <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
-            <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
-            <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.48</span>
-                <button id="save-button" class="save-button">Save Changes</button>
-            </div>
-        </div>
-        <main id="editor-main-content">
-            <div class="loader">Loading Editor...</div>
-        </main>
-    </div>
+	<div class="toppanel" id="toppanel" style="display: none;">
+		<div class="left">
+			<span class="centertext" id="name">Kitaboo widget</span>
+		</div>
+		<div class="rightclose" onclick="onClose()" style="display: none;">
+			<img class="centertext icon-video_player_close" id="close" src="sdk/0.0.2/img/close.svg"></img>
+		</div>
+	</div>
+	<div class="tocpanel" id="tocitems">
+		<div id="tocchild">
+			<div class="tocloader"></div>
+			<div class="item" id="tocholder"></div>
+		</div>
+	</div>
+	<div class="maincontainer">
+		<div class="loader" id="loader">
+			<img alt="loader" src="sdk/0.0.2/img/loader.gif">
+		</div>
+		<div class="epubviewer" id="epubviewer"></div>
+	</div>
+	<div class="bottompanal hide" id="bottompanal">
+		<div class="toc" onclick="toggleToc()">
+			<!-- <img class="centertext icon-toc" id="menu" src="sdk/0.0.2/img/TOC.svg"></img> -->
+			<object class="centertext icon-toc" id="menu" data="sdk/0.0.2/img/TOC.svg" type="image/svg+xml"></object>
+		</div>
+		<div class="pagenavigation">
+			<div id="prev" class="arrow " onclick="previousChapter()">
+				<!-- <img class="centertext icon-prev_page_icon" src="sdk/0.0.2/img/back.svg"></img> -->
+				<object class="centertext icon-prev_page_icon" data="sdk/0.0.2/img/back.svg"
+					type="image/svg+xml"></object>
+			</div>
+			<div class="label">
+				<span class="centertext" id="count">0</span>
+			</div>
+			<div id="next" class="arrow" onclick="nextChapter()">
+				<!-- <img class="centertext icon-next_page_icon" src="sdk/0.0.2/img/next.svg"></img> -->
+				<object class="centertext icon-next_page_icon" data="sdk/0.0.2/img/next.svg"
+					type="image/svg+xml"></object>
+			</div>
+		</div>
+	</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const bootstrap = () => {
-                const mainContent = document.getElementById('editor-main-content');
-                if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found.</div>`; return; }
-                const script = document.createElement('script');
-                script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
-                script.referrerPolicy = 'origin';
-                script.onload = () => { console.log("TinyMCE loaded."); runApp(); };
-                script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
-                document.head.appendChild(script);
-            };
+	<div class="bottompanal_ladscape1 hide" id="start_course_btn">
+		<div class="btn" onclick="nextChapter()">
+			<span class="startbtn_text">Start Course</span>
+		</div>
+	</div>
 
-            function runApp() {
-                let currentTigData = null; let currentSrbData = null; let manifestData = []; let activeEditor = null;
-                const mainContent = document.getElementById('editor-main-content');
-                const courseSelector = document.getElementById('course-selector');
-                const lessonSelector = document.getElementById('lesson-selector');
-                const saveButton = document.getElementById('save-button');
-                
-                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
-                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
-                
-                async function init() {
-                    try {
-                        const response = await fetch('manifest.json');
-                        if (!response.ok) throw new Error("Manifest not found.");
-                        manifestData = await response.json();
-                        populateCourseSelector();
-                        courseSelector.addEventListener('change', handleCourseChange);
-                        lessonSelector.addEventListener('change', handleLessonChange);
-                        saveButton.addEventListener('click', saveChanges);
-                        mainContent.addEventListener('click', handleEditorEvents);
-                        mainContent.addEventListener('input', handleInputChange);
-                        await handleCourseChange();
-                    } catch (error) {
-                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
-                    }
-                }
-                
-                function handleEditorEvents(e) {
-                    if (e.target.closest('.editable-content')) handleContentClick(e);
-                    if (e.target.closest('.add-break-btn')) handleAddSlideBreak(e);
-                    if (e.target.closest('.delete-break-btn')) handleDeleteSlideBreak(e);
-                }
+	<div class="bottompanal_ladscape2 hide" id="prev_next_btn">
+		<div class=" back_btn" onclick="previousChapter()">
+			<span class="btn_back_text">Back</span>
+		</div>
+		<div class="btn" onclick="nextChapter()">
+			<span class="next_btn_text">Next</span>
+		</div>
+	</div>
 
-                function handleAddSlideBreak(e) {
-                    const srbColumn = e.target.closest('.editor-column');
-                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
-                    let topVisibleIndex = 0;
-                    for (let i = 0; i < featureElements.length; i++) {
-                        const rect = featureElements[i].getBoundingClientRect();
-                        if (rect.top >= srbColumn.getBoundingClientRect().top) {
-                            const path = featureElements[i].getAttribute('data-path');
-                            topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
-                            break;
-                        }
-                    }
-                    const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
-                    currentSrbData.lesson_content_sessions[0].features.splice(topVisibleIndex + 1, 0, newBreak);
-                    renderSideBySideEditor();
-                }
+	<div class="bottompanal_ladscape3 hide" id="back_end_btn">
+		<div class="back_btn" onclick="previousChapter()">
+			<span class="btn_back_text">Back</span>
+		</div>
+		<div class="btn" onclick="nextChapter()">
+			<span class="finshBtn_text">Finish</span>
+		</div>
+	</div>
 
-                function handleDeleteSlideBreak(e) {
-                    const path = e.target.getAttribute('data-path');
-                    if (!path) return;
-                    const pathParts = path.match(/\[(\d+)\]/g);
-                    if (pathParts && pathParts.length) {
-                        const index = parseInt(pathParts[pathParts.length - 1].replace(/[\[\]]/g, ''), 10);
-                        currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
-                        renderSideBySideEditor();
-                    }
-                }
-                
-                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
-                function populateLessonSelector(courseName) { 
-                    lessonSelector.innerHTML = ''; 
-                    const course = manifestData.find(c => c.courseName === courseName); 
-                    if (course && course.lessons.length > 0) { 
-                        lessonSelector.disabled = false; 
-                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, index))); 
-                    } else { 
-                        lessonSelector.disabled = true; 
-                        lessonSelector.add(new Option('No lessons available', '')); 
-                    } 
-                }
-                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
-                async function handleLessonChange() {
-                    const lessonIndex = lessonSelector.value;
-                    if (lessonIndex === '' || lessonIndex === null) {
-                        mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
-                        currentTigData = null; currentSrbData = null; return;
-                    }
-                    mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
-                    const course = manifestData.find(c => c.courseName === courseSelector.value);
-                    const lessonInfo = course.lessons[lessonIndex];
-                    try {
-                        const [tigResponse, srbResponse] = await Promise.all([ fetch(lessonInfo.tig_path), fetch(lessonInfo.srb_path) ]);
-                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${lessonInfo.tig_path}`);
-                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${lessonInfo.srb_path}`);
-                        currentTigData = await tigResponse.json();
-                        currentSrbData = await srbResponse.json();
-                        renderSideBySideEditor();
-                    } catch (error) {
-                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
-                    }
-                }
-                
-                function destroyActiveEditor(saveContent = true) {
-                    if (!activeEditor) return;
-                    const { editor, container, path, isList, source } = activeEditor;
-                    const editorId = editor.id;
-                    if (saveContent) {
-                        let value;
-                        if (isList) {
-                            const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
-                            value = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
-                        } else { value = editor.getContent(); }
-                        updateSharedData(source, path, value);
-                        syncAndRefreshViews(source, path);
-                    } else {
-                        const featureCard = container.closest('.feature-card');
-                         if(featureCard) {
-                            const featurePath = featureCard.getAttribute('data-path');
-                            const feature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
-                            const contentArea = featureCard.querySelector('.feature-content');
-                            if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath, source);
-                        }
-                    }
-                    tinymce.get(editorId)?.remove();
-                    activeEditor = null;
-                }
+	<div class="bottompanel4 hide" id="bottompanal4">
+		<div class="showHideBottomPanel">
+			<object class="centertext arrowIcon icon-prev_page_icon" data="sdk/0.0.2/img/arrow_up.svg"
+				type="image/svg+xml"></object>
+		</div>
+		<div class="gradableActivityBottomPanel">
+			<div class="toc" onclick="toggleToc()">
+				<object class="centertext icon-toc" id="menu" data="sdk/0.0.2/img/TOC_2.svg"
+					type="image/svg+xml"></object>
+			</div>
+			<div class="pagenavigation">
+				<div id="prev" class="arrow" onclick="previousChapter()">
+					<!-- <img class="centertext icon-prev_page_icon" src="sdk/0.0.2/img/back.svg"></img> -->
+					<object class="centertext icon-prev_page_icon" data="sdk/0.0.2/img/arrow_left.svg"
+						type="image/svg+xml"></object>
+				</div>
+				<div class="label">
+					<span class="centertext rubik400" id="gradableActivityPageCount">0</span>
+				</div>
+				<div id="next" class="arrow" onclick="nextChapter()">
+					<!-- <img class="centertext icon-next_page_icon" src="sdk/0.0.2/img/next.svg"></img> -->
+					<object class="centertext icon-next_page_icon" data="sdk/0.0.2/img/arrow_right.svg"
+						type="image/svg+xml"></object>
+				</div>
+			</div>
+		</div>
+	</div>
 
-                function handleContentClick(e) {
-                    const target = e.target.closest('.editable-content');
-                    if (!target) return;
-                    if (activeEditor && activeEditor.container === target) return;
-                    destroyActiveEditor(true); 
-                    const path = target.getAttribute('data-path');
-                    const isList = target.getAttribute('data-type') === 'list';
-                    const source = target.closest('.editor-column').getAttribute('data-source');
-                    const content = target.innerHTML;
-                    target.innerHTML = '';
-                    const textarea = document.createElement('textarea');
-                    const editorId = `editor-for-${path.replace(/[.\[\]]/g, '-')}`;
-                    textarea.id = editorId;
-                    textarea.value = content;
-                    target.appendChild(textarea);
-                    const newEditorConfig = { 
-                        selector: `#${editorId}`,
-                        plugins: 'lists link image code help wordcount autoresize formula', 
-                        toolbar: 'undo redo | blocks | bold italic formula | alignleft aligncenter alignright | bullist numlist | code | help', 
-                        menubar: true, min_height: 150, autoresize_bottom_margin: 24, 
-                        setup: (editor) => { 
-                            editor.on('init', () => editor.focus()); 
-                            activeEditor = { editor, container: target, path, isList, source }; 
-                        } 
-                    };
-                    if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic formula | bullist numlist | code | help'; }
-                    tinymce.init(newEditorConfig);
-                }
-                
-                function updateSharedData(source, path, value) { /* Unchanged */ }
-                
-                function syncAndRefreshViews(source, path) {
-                    const pathParts = path.match(/[^.\[\]]+/g) || [];
-                    const featurePath = pathParts.slice(0, 2).join('.');
-                    const sourceFeature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
-                    if (!sourceFeature || !sourceFeature.uuid) return;
-                    
-                    const sourceCard = mainContent.querySelector(`.editor-column[data-source="${source}"] [data-uuid="${sourceFeature.uuid}"]`);
-                    if (sourceCard && sourceCard.querySelector('.feature-content')) {
-                        sourceCard.querySelector('.feature-content').innerHTML = renderFeatureContent(sourceFeature, sourceCard.getAttribute('data-path'), source);
-                    }
-                
-                    const targetSource = source === 'tig' ? 'srb' : 'tig';
-                    const targetCard = mainContent.querySelector(`.editor-column[data-source="${targetSource}"] [data-uuid="${sourceFeature.uuid}"]`);
-                    if(targetCard) {
-                        const targetPath = targetCard.getAttribute('data-path');
-                        const targetFeature = getNestedProperty(targetSource === 'tig' ? currentTigData : currentSrbData, targetPath);
-                        if (targetFeature && targetCard.querySelector('.feature-content')) {
-                           targetCard.querySelector('.feature-content').innerHTML = renderFeatureContent(targetFeature, targetPath, targetSource);
-                        }
-                    }
-                }
 
-                function handleInputChange(e) {
-                    const target = e.target;
-                    const path = target.getAttribute('data-path');
-                    const source = target.closest('.editor-column').getAttribute('data-source');
-                    if (path && source) {
-                        let value;
-                        if (target.type === 'checkbox') value = target.checked;
-                        else if (target.tagName === 'SELECT') value = isNaN(parseInt(target.value)) ? target.value : parseInt(target.value);
-                        else value = target.value;
-                        updateSharedData(source, path, value);
-                        syncAndRefreshViews(source, path);
-                    }
-                }
-                
-                function renderSideBySideEditor() {
-                    destroyActiveEditor(false);
-                    mainContent.innerHTML = `
-                        <div class="editor-column" data-source="srb">
-                            <div class="column-header srb-column-header">
-                                <span>Student View <small>(SRB)</small></span>
-                                <button class="add-break-btn">Add Slide Break</button>
-                            </div>
-                            ${renderColumnContent('srb')}
-                        </div>
-                        <div class="editor-column" data-source="tig">
-                            <div class="column-header">Teacher View <small>(TIG)</small></div>
-                            ${renderColumnContent('tig')}
-                        </div>`;
-                    initializeSortable();
-                }
-
-                function initializeSortable() {
-                    const srbContent = mainContent.querySelector('.editor-column[data-source="srb"]');
-                    if (srbContent) {
-                        new Sortable(srbContent.querySelector('.sortable-list[data-path^="lesson_content_sessions"]'), {
-                            handle: '.drag-handle',
-                            animation: 150,
-                            onEnd: (evt) => {
-                                const feature = currentSrbData.lesson_content_sessions[0].features.splice(evt.oldIndex, 1)[0];
-                                currentSrbData.lesson_content_sessions[0].features.splice(evt.newIndex, 0, feature);
-                                renderSideBySideEditor();
-                            }
-                        });
-                    }
-                }
-
-                function renderColumnContent(source) {
-                    const data = source === 'srb' ? currentSrbData : currentTigData;
-                    if (!data) return '<div class="loader">Data not loaded.</div>';
-                    
-                    let overviewHtml = `<div class="sortable-list" data-path="lesson_overview_items">${renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source)}</div>`;
-                    let mainContentHtml = '';
-
-                    if (source === 'srb' && data.lesson_content_sessions) {
-                        mainContentHtml = `<div class="sortable-list" data-path="lesson_content_sessions[0].features">${renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source)}</div>`;
-                    } else if (source === 'tig' && data.lesson_support_sessions) {
-                        (data.lesson_support_sessions || []).forEach((session, sIndex) => {
-                            mainContentHtml += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
-                            const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
-                            const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
-                            blockOrder.forEach(blockName => {
-                                if (blocks[blockName]) {
-                                    mainContentHtml += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
-                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); mainContentHtml += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`, source); });
-                                    mainContentHtml += `</div></div>`;
-                                }
-                            });
-                        });
-                    }
-                    return overviewHtml + mainContentHtml;
-                }
-
-                function renderSection(title, items, path, source) {
-                    let html = `<h2 class="section-header">${title}</h2>`;
-                    (items || []).forEach((feature, index) => {
-                        html += renderFeature(feature, `${path}[${index}]`, source);
-                    });
-                    return html;
-                }
-
-                function renderFeature(feature, path, source) {
-                    if (!feature || !feature.feature_data) return ''; 
-                    if (feature.feature_type === 'slide_break') {
-                        if (source === 'srb') {
-                            return `<div class="slide-break-feature" data-path="${path}" data-uuid="${feature.uuid}">
-                                        <span class="drag-handle">☰</span>
-                                        <span>SLIDE BREAK</span>
-                                        <button class="delete-break-btn" data-path="${path}" title="Delete Slide Break">X</button>
-                                    </div>`;
-                        } else { return `<div class="slide-break-indicator" data-uuid="${feature.uuid}"></div>`; }
-                    }
-                    if (feature.feature_data.data_type === 'static_header') {
-                         return `<div class="static-header-card" data-path="${path}" data-uuid="${feature.uuid}">
-                                    ${feature.feature_title}
-                                    ${feature.feature_data.mode ? `<span class="feature-type-badge">${feature.feature_data.mode}</span>` : ''}
-                                </div>`;
-                    }
-                    if (feature.feature_data.data_type === 'activity_header') {
-                        let activityNumberHtml = '';
-                        if (feature.feature_data.hasOwnProperty('activity_number')) {
-                            let selectHtml = `<select data-path="${path}.feature_data.activity_number">`;
-                            for(let i=1; i<=8; i++) { selectHtml += `<option value="${i}" ${feature.feature_data.activity_number === i ? 'selected' : ''}>${i}</option>`; }
-                            selectHtml += `</select>`;
-                            activityNumberHtml = `Activity ${selectHtml}`;
-                        }
-                        return `<div class="static-header-card" data-path="${path}" data-uuid="${feature.uuid}">${activityNumberHtml} <input type="text" value="${feature.feature_title}" data-path="${path}.feature_title"/></div>`;
-                    }
-                    
-                    const contentHtml = renderFeatureContent(feature, path, source);
-                    return `<div class="feature-card" data-path="${path}" data-uuid="${feature.uuid}">
-                                <div class="feature-header"><h3>${feature.feature_title}</h3><span class="feature-type-badge">${feature.feature_type}</span></div>
-                                ${contentHtml ? `<div class="feature-content">${contentHtml}</div>` : ''}
-                            </div>`;
-                }
-
-                function renderFeatureContent(feature, path, source) {
-                   const data = source === 'srb' ? currentSrbData : currentTigData;
-                   const dataType = feature.feature_data.data_type;
-                   const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
-                       let content = getNestedProperty(data, contentPath);
-                       if (isList) { content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; }
-                       return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
-                   };
-                   
-                   switch (dataType) {
-                        case 'list': 
-                        case 'rich_text_list':
-                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
-                        
-                        case 'rich_text':
-                            if (feature.feature_type === 'learning_prompt') {
-                                const question = getNestedProperty(data, path + '.feature_data.prompt_question');
-                                const answer = getNestedProperty(data, path + '.feature_data.prompt_answer');
-                                if (source === 'tig') {
-                                    return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
-                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(path + '.feature_data.prompt_answer')}</div>`;
-                                } else {
-                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(path + '.feature_data.prompt_question')}</div>
-                                            <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
-                                }
-                            } else { return createEditableDiv(path + '.feature_data.content'); }
-
-                        case 'prompt': 
-                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
-                                    <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
-                        
-                        case 'qti_assessment_item':
-                            const itemData = feature.feature_data;
-                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
-                            (itemData.item_body.interactions || []).forEach((interaction, i) => {
-                                const respDeclIndex = (itemData.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
-                                if (respDeclIndex > -1) {
-                                    const respDecl = itemData.response_declarations[respDeclIndex];
-                                    const isSample = respDecl.is_sample_answer === true;
-                                    html += `<div class="qti-interaction">
-                                                <div class="form-field"><label>Interaction Prompt</label><input type="text" value="${interaction.prompt}" data-path="${path}.feature_data.item_body.interactions[${i}].prompt" /></div>
-                                                <div class="form-field qti-answer">
-                                                    <div class="answer-header">
-                                                        <label>Correct Response</label>
-                                                        <div class="sample-answer-toggle">
-                                                            <label for="sample-toggle-${path}-${i}">Sample Answer?</label>
-                                                            <input type="checkbox" id="sample-toggle-${path}-${i}" data-path="${path}.feature_data.response_declarations[${respDeclIndex}].is_sample_answer" ${isSample ? 'checked' : ''} />
-                                                        </div>
-                                                    </div>
-                                                    ${createEditableDiv(`${path}.feature_data.response_declarations[${respDeclIndex}].correct_response`)}
-                                                </div>
-                                            </div>`;
-                                }
-                            });
-                            if (itemData.ancillary_content) {
-                                if (itemData.ancillary_content.think_about) { html += `<div class="form-field"><label>Think About</label>${createEditableDiv(`${path}.feature_data.ancillary_content.think_about`)}</div>`; }
-                                if (itemData.ancillary_content.ask_yourself) { html += `<div class="form-field"><label>Ask Yourself</label>${createEditableDiv(`${path}.feature_data.ancillary_content.ask_yourself`)}</div>`; }
-                                if (itemData.ancillary_content.graphic) { const graphic = itemData.ancillary_content.graphic; html += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
-                            }
-                            return html;
-
-                        case 'problem': 
-                             const probData = feature.feature_data;
-                             let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
-                             if (probData.answer) {
-                                 const isSampleAnswer = probData.answer.is_sample_answer === true;
-                                 probHtml += `<div class="form-field" style="border-left: 4px solid magenta; padding-left: 1rem;">
-                                                <div class="answer-header">
-                                                    <label>Answer</label>
-                                                    ${ 'is_sample_answer' in probData.answer ? `<div class="sample-answer-toggle">
-                                                        <label for="sample-toggle-${path}">Sample Answer?</label>
-                                                        <input type="checkbox" id="sample-toggle-${path}" data-path="${path}.feature_data.answer.is_sample_answer" ${isSampleAnswer ? 'checked' : ''} />
-                                                    </div>` : ''}
-                                                </div>
-                                                ${createEditableDiv(`${path}.feature_data.answer.content`)}
-                                            </div>`;
-                             }
-                             return probHtml;
-
-                        case 'session_list': 
-                            let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
-                            tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
-                            return tableHtml += `</tbody></table>`;
-                        
-                        case 'intro_with_list':
-                            const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; 
-                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
-                        
-                        case 'intro_with_structured_list': 
-                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
-
-                        case 'detailed_activity_facilitation': 
-                            const facData = feature.feature_data; let promptHtml = ''; 
-                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
-                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
-                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
-                            modeDropdown += `</select>`;
-                            if (facData.activate_prompt) {
-                                promptHtml = `<div class="structured-list-item">
-                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
-                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
-                                            </div>`;
-                            } 
-                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
-                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
-                                    ${promptHtml}
-                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
-                        
-                        case 'differentiation_strategy': 
-                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
-                        
-                        case 'ongoing_assessment': 
-                            const assessData = feature.feature_data;
-                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
-                        
-                        case 'question_set_list': 
-                            return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
-                        
-                        default: return ``;
-                    }
-                }
-
-                function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
-                
-                init();
-            }
-            bootstrap();
-        });
-    </script>
 </body>
 </html>
