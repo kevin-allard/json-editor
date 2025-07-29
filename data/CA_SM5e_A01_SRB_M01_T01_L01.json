@@ -65,6 +65,12 @@
       "session": 1,
       "features": [
         {
+            "uuid": "slide-break-initial",
+            "feature_type": "slide_break",
+            "feature_title": "Slide Break",
+            "feature_data": { "data_type": "slide_break" }
+        },
+        {
           "uuid": "stu-l1-activate-def2",
           "feature_type": "activate_block",
           "feature_title": "Activate",
