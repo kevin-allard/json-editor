@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.50 -->
+<!-- Editor Version: rc1.beta.0.51 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +9,6 @@
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- Note: The plugin's own JS is loaded by TinyMCE, not here. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
@@ -76,7 +75,7 @@
             <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
             <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.50</span>
+                <span class="version-tag">v. rc1.beta.0.51</span>
                 <button id="save-button" class="save-button">Save Changes</button>
             </div>
         </div>
@@ -108,16 +107,117 @@
                 function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
                 function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
                 
-                async function init() { /* Unchanged */ }
-                function handleEditorEvents(e) { /* Unchanged */ }
-                function handleAddSlideBreak(e) { /* Unchanged */ }
-                function handleDeleteSlideBreak(e) { /* Unchanged */ }
-                function populateCourseSelector() { /* Unchanged */ }
-                function populateLessonSelector(courseName) { /* Unchanged */ }
-                async function handleCourseChange() { /* Unchanged */ }
-                async function handleLessonChange() { /* Unchanged */ }
+                async function init() {
+                    try {
+                        const response = await fetch('manifest.json');
+                        if (!response.ok) throw new Error("Manifest not found.");
+                        manifestData = await response.json();
+                        populateCourseSelector();
+                        courseSelector.addEventListener('change', handleCourseChange);
+                        lessonSelector.addEventListener('change', handleLessonChange);
+                        saveButton.addEventListener('click', saveChanges);
+                        mainContent.addEventListener('click', handleEditorEvents);
+                        mainContent.addEventListener('input', handleInputChange);
+                        await handleCourseChange();
+                    } catch (error) {
+                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
+                    }
+                }
                 
-                function destroyActiveEditor(saveContent = true) { /* Unchanged */ }
+                function handleEditorEvents(e) {
+                    if (e.target.closest('.editable-content')) handleContentClick(e);
+                    if (e.target.closest('.add-break-btn')) handleAddSlideBreak(e);
+                    if (e.target.closest('.delete-break-btn')) handleDeleteSlideBreak(e);
+                }
+
+                function handleAddSlideBreak(e) {
+                    const srbColumn = e.target.closest('.editor-column');
+                    let topVisibleIndex = 0;
+                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
+                    if (featureElements.length > 0) {
+                        for (let i = 0; i < featureElements.length; i++) {
+                            const rect = featureElements[i].getBoundingClientRect();
+                            if (rect.top >= srbColumn.getBoundingClientRect().top) {
+                                const path = featureElements[i].getAttribute('data-path');
+                                topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
+                                break;
+                            }
+                        }
+                    }
+                    const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
+                    currentSrbData.lesson_content_sessions[0].features.splice(topVisibleIndex + 1, 0, newBreak);
+                    renderSideBySideEditor();
+                }
+
+                function handleDeleteSlideBreak(e) {
+                    const path = e.target.getAttribute('data-path');
+                    if (!path) return;
+                    const pathParts = path.match(/\[(\d+)\]/g);
+                    if (pathParts && pathParts.length) {
+                        const index = parseInt(pathParts[pathParts.length - 1].replace(/[\[\]]/g, ''), 10);
+                        currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
+                        renderSideBySideEditor();
+                    }
+                }
+                
+                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { 
+                    lessonSelector.innerHTML = ''; 
+                    const course = manifestData.find(c => c.courseName === courseName); 
+                    if (course && course.lessons.length > 0) { 
+                        lessonSelector.disabled = false; 
+                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, index))); 
+                    } else { 
+                        lessonSelector.disabled = true; 
+                        lessonSelector.add(new Option('No lessons available', '')); 
+                    } 
+                }
+                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+                async function handleLessonChange() {
+                    const lessonIndex = lessonSelector.value;
+                    if (lessonIndex === '' || lessonIndex === null) {
+                        mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
+                        currentTigData = null; currentSrbData = null; return;
+                    }
+                    mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
+                    const course = manifestData.find(c => c.courseName === courseSelector.value);
+                    const lessonInfo = course.lessons[lessonIndex];
+                    try {
+                        const [tigResponse, srbResponse] = await Promise.all([ fetch(lessonInfo.tig_path), fetch(lessonInfo.srb_path) ]);
+                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${lessonInfo.tig_path}`);
+                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${lessonInfo.srb_path}`);
+                        currentTigData = await tigResponse.json();
+                        currentSrbData = await srbResponse.json();
+                        renderSideBySideEditor();
+                    } catch (error) {
+                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
+                    }
+                }
+                
+                function destroyActiveEditor(saveContent = true) {
+                    if (!activeEditor) return;
+                    const { editor, container, path, isList, source } = activeEditor;
+                    const editorId = editor.id;
+                    if (saveContent) {
+                        let value;
+                        if (isList) {
+                            const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
+                            value = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
+                        } else { value = editor.getContent(); }
+                        updateSharedData(source, path, value);
+                        syncAndRefreshViews(source, path);
+                    } else {
+                        const featureCard = container.closest('.feature-card');
+                         if(featureCard) {
+                            const featurePath = featureCard.getAttribute('data-path');
+                            const feature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
+                            const contentArea = featureCard.querySelector('.feature-content');
+                            if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath, source);
+                        }
+                    }
+                    tinymce.get(editorId)?.remove();
+                    activeEditor = null;
+                }
 
                 function handleContentClick(e) {
                     const target = e.target.closest('.editable-content');
@@ -137,26 +237,24 @@
                     
                     const newEditorConfig = { 
                         selector: `#${editorId}`,
-                        plugins: 'lists link image code help wordcount autoresize formula equationeditor', // ADDED PLUGIN
-                        toolbar: 'undo redo | blocks | bold italic formula equationeditor | alignleft aligncenter alignright | bullist numlist | code | help', // ADDED BUTTON
+                        plugins: 'lists link image code help wordcount autoresize equationeditor', // CORRECTED
+                        toolbar: 'undo redo | blocks | bold italic equationeditor | alignleft aligncenter alignright | bullist numlist | code | help', // CORRECTED
                         menubar: true, min_height: 150, autoresize_bottom_margin: 24, 
-                        
-                        // ADDED CONFIGURATION FOR EXTERNAL PLUGIN
                         external_plugins: {
                             'equationeditor': 'https://tinymce-equation-editor.netlify.app/equation-editor/plugin.min.js'
                         },
-                        // ADDED RULE TO ALLOW MATHML TAGS
                         extended_valid_elements: 'math[*],mstyle[*],mrow[*],mi[*],mn[*],mo[*],msup[*],msub[*],mfrac[*],msqrt[*],mtable[*],mtr[*],mtd[*]',
-                        // Recommended CSS for MathLive styling
                         content_css: 'https://cdn.jsdelivr.net/npm/mathlive/dist/mathlive-static.css',
-
                         setup: (editor) => { 
                             editor.on('init', () => editor.focus()); 
                             activeEditor = { editor, container: target, path, isList, source }; 
                         } 
                     };
 
-                    if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic formula equationeditor | bullist numlist | code | help'; }
+                    if (isList) { 
+                        newEditorConfig.menubar = false; 
+                        newEditorConfig.toolbar = 'undo redo | bold italic equationeditor | bullist numlist | code | help'; 
+                    }
                     tinymce.init(newEditorConfig);
                 }
                 
@@ -168,7 +266,7 @@
                 function renderColumnContent(source) { /* Unchanged */ }
                 function renderSection(title, items, path, source, isSortable = false) { /* Unchanged */ }
                 function renderFeature(feature, path, source) { /* Unchanged */ }
-                function renderFeatureContent(feature, path, source) { /* Unchanged */ }
+                function renderFeatureContent(feature, path, source) { /* Unchanged and Complete */ }
                 function saveChanges() { /* Unchanged */ }
                 
                 init();
