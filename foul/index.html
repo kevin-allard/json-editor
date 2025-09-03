@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.55 -->
+<!-- Editor Version: rc1.beta.0.57 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* All CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -34,10 +33,15 @@
         .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
         .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
         .user-profile .settings-icon:hover { color: var(--md-text-primary); }
-        .editor-column { flex: 1; min-width: 0; overflow-y: auto; padding-right: 12px; padding-bottom: 50vh; }
-        .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; }
+        .editor-column { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
-        .srb-column-header { display: flex; justify-content: space-between; align-items: center; }
+        .column-content { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
+        .view-toggle-btn { background: none; border: 1px solid var(--md-border-color); color: var(--md-text-secondary); font-family: monospace; font-size: 1.2rem; cursor: pointer; border-radius: 4px; padding: 2px 8px; }
+        .view-toggle-btn:hover { background-color: #e0e0e0; }
+        .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
+        .source-view-textarea.error { border-color: #f44336; }
+        .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
         .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
         .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
         .slide-break-feature button { background: #ffcdd2; color: #c62828; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
@@ -90,11 +94,11 @@
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.55</span>
+                <span class="version-tag">v. rc1.beta.0.57</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
-                    <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <img src="images/avatar.png" alt="User Avatar" class="avatar">
                 </div>
             </div>
@@ -105,8 +109,6 @@
     </div>
 
     <script>
-        // The entire JavaScript section is unchanged from the last stable, working version (v1.rc1.beta.0.49).
-        // It correctly handles loading, rendering, editing, and synchronization.
         document.addEventListener('DOMContentLoaded', () => {
             const bootstrap = () => {
                 const mainContent = document.getElementById('editor-main-content');
@@ -121,6 +123,7 @@
 
             function runApp() {
                 let currentTigData = null; let currentSrbData = null; let manifestData = []; let activeEditor = null;
+                let srbViewMode = 'editor'; let tigViewMode = 'editor';
                 const mainContent = document.getElementById('editor-main-content');
                 const courseSelector = document.getElementById('course-selector');
                 const lessonSelector = document.getElementById('lesson-selector');
@@ -150,6 +153,27 @@
                     if (e.target.closest('.editable-content')) handleContentClick(e);
                     if (e.target.closest('.add-break-btn')) handleAddSlideBreak(e);
                     if (e.target.closest('.delete-break-btn')) handleDeleteSlideBreak(e);
+                    if (e.target.closest('.view-toggle-btn')) handleViewToggle(e);
+                }
+
+                function handleViewToggle(e) {
+                    const source = e.target.closest('.editor-column').getAttribute('data-source');
+                    if (source === 'srb') srbViewMode = srbViewMode === 'editor' ? 'source' : 'editor';
+                    else if (source === 'tig') tigViewMode = tigViewMode === 'editor' ? 'source' : 'editor';
+                    renderSideBySideEditor();
+                }
+                
+                function handleSourceEdit(e) {
+                    const source = e.target.closest('.editor-column').getAttribute('data-source');
+                    const value = e.target.value;
+                    try {
+                        const newData = JSON.parse(value);
+                        if (source === 'srb') currentSrbData = newData;
+                        else currentTigData = newData;
+                        e.target.classList.remove('error');
+                    } catch (err) {
+                        e.target.classList.add('error');
+                    }
                 }
 
                 function handleAddSlideBreak(e) {
@@ -157,13 +181,18 @@
                     let topVisibleIndex = 0;
                     const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
                     if (featureElements.length > 0) {
+                        let minTop = Number.MAX_VALUE;
+                        let elementIndex = -1;
                         for (let i = 0; i < featureElements.length; i++) {
                             const rect = featureElements[i].getBoundingClientRect();
-                            if (rect.top >= srbColumn.getBoundingClientRect().top) {
-                                const path = featureElements[i].getAttribute('data-path');
-                                topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
-                                break;
+                            if (rect.top >= srbColumn.getBoundingClientRect().top && rect.top < minTop) {
+                                minTop = rect.top;
+                                elementIndex = i;
                             }
+                        }
+                        if (elementIndex !== -1) {
+                            const path = featureElements[elementIndex].getAttribute('data-path');
+                            topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
                         }
                     }
                     const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
@@ -188,7 +217,7 @@
                     const course = manifestData.find(c => c.courseName === courseName); 
                     if (course && course.lessons.length > 0) { 
                         lessonSelector.disabled = false; 
-                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, lesson.name)));
+                        course.lessons.forEach((lesson) => lessonSelector.add(new Option(lesson.name, lesson.name)));
                     } else { 
                         lessonSelector.disabled = true; 
                         lessonSelector.add(new Option('No lessons available', '')); 
@@ -341,17 +370,24 @@
                     destroyActiveEditor(false);
                     mainContent.innerHTML = `
                         <div class="editor-column" data-source="srb">
-                            <div class="column-header srb-column-header">
-                                <span>Student View <small>(SRB)</small></span>
-                                <button class="add-break-btn">Add Slide Break</button>
+                            <div class="column-header">
+                                <div class="srb-column-header">
+                                    <span>Student View <small>(SRB)</small></span>
+                                    <button class="add-break-btn">Add Slide Break</button>
+                                </div>
+                                <button class="view-toggle-btn" title="Toggle Source View">&lt;&gt;</button>
                             </div>
-                            ${renderColumnContent('srb')}
+                            <div class="column-content">${renderColumnContent('srb')}</div>
                         </div>
                         <div class="editor-column" data-source="tig">
-                            <div class="column-header">Teacher View <small>(TIG)</small></div>
-                            ${renderColumnContent('tig')}
+                            <div class="column-header">
+                                <span>Teacher View <small>(TIG)</small></span>
+                                <button class="view-toggle-btn" title="Toggle Source View">&lt;&gt;</button>
+                            </div>
+                            <div class="column-content">${renderColumnContent('tig')}</div>
                         </div>`;
                     initializeSortable();
+                    mainContent.querySelectorAll('.source-view-textarea').forEach(area => area.addEventListener('input', handleSourceEdit));
                 }
 
                 function initializeSortable() {
@@ -376,6 +412,12 @@
 
                 function renderColumnContent(source) {
                     const data = source === 'srb' ? currentSrbData : currentTigData;
+                    const mode = source === 'srb' ? srbViewMode : tigViewMode;
+
+                    if (mode === 'source') {
+                        return `<textarea class="source-view-textarea">${JSON.stringify(data, null, 2)}</textarea>`;
+                    }
+
                     if (!data) return '<div class="loader">Data not loaded.</div>';
                     let overviewHtml = renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source, true);
                     let mainContentHtml = '';
@@ -564,7 +606,7 @@
                             return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
                         
                         default: return ``;
-                   }
+                    }
                 }
 
                 function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
