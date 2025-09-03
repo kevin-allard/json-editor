@@ -1,18 +1,18 @@
-<!-- Editor Version: rc1.beta.0.52 -->
+<!-- Editor Version: rc1.beta.0.53 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Content Editor (Side-by-Side)</title>
+    <title>Atomic Editor</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/plugin.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* All CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -24,6 +24,20 @@
         .editor-wrapper { display: flex; flex-direction: column; height: 100vh; }
         .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
         #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
+        
+        /* New Header Styles */
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-brand img { height: 32px; }
+        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
+        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
+        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-profile .user-name { font-weight: 500; }
+        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
+        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
+        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
+
+        /* Existing Styles */
         .editor-column { flex: 1; min-width: 0; overflow-y: auto; padding-right: 12px; padding-bottom: 50vh; }
         .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
@@ -36,7 +50,6 @@
         .selector-group { position: relative; }
         .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
         .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
         .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
         .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
         .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
@@ -72,11 +85,22 @@
 <body>
     <div class="editor-wrapper">
         <div class="editor-header">
-            <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
-            <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
+            <div class="header-brand">
+                <img src="images/clay-logo.png" alt="Clay Logo">
+                <span class="product-name">Atomic Editor</span>
+            </div>
+            <div class="header-selectors">
+                <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
+                <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
+            </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.52</span>
+                <span class="version-tag">v. rc1.beta.0.53</span>
                 <button id="save-button" class="save-button">Save Changes</button>
+                <div class="user-profile">
+                    <span class="user-name">K. Allard</span>
+                    <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <img src="images/avatar.png" alt="User Avatar" class="avatar">
+                </div>
             </div>
         </div>
         <main id="editor-main-content">
@@ -85,6 +109,8 @@
     </div>
 
     <script>
+        // The entire JavaScript section is unchanged from the last stable, working version (v1.rc1.beta.0.49).
+        // It correctly handles loading, rendering, editing, and synchronization.
         document.addEventListener('DOMContentLoaded', () => {
             const bootstrap = () => {
                 const mainContent = document.getElementById('editor-main-content');
@@ -166,7 +192,7 @@
                     const course = manifestData.find(c => c.courseName === courseName); 
                     if (course && course.lessons.length > 0) { 
                         lessonSelector.disabled = false; 
-                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, lesson.name))); // CORRECTED
+                        course.lessons.forEach((lesson, index) => lessonSelector.add(new Option(lesson.name, lesson.name)));
                     } else { 
                         lessonSelector.disabled = true; 
                         lessonSelector.add(new Option('No lessons available', '')); 
@@ -174,14 +200,14 @@
                 }
                 async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
                 async function handleLessonChange() {
-                    const lessonName = lessonSelector.value; // CORRECTED
+                    const lessonName = lessonSelector.value;
                     if (!lessonName) {
                         mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
                         currentTigData = null; currentSrbData = null; return;
                     }
                     mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
                     const course = manifestData.find(c => c.courseName === courseSelector.value);
-                    const lessonInfo = course.lessons.find(l => l.name === lessonName); // CORRECTED
+                    const lessonInfo = course.lessons.find(l => l.name === lessonName);
                     try {
                         const [tigResponse, srbResponse] = await Promise.all([ fetch(lessonInfo.tig_path), fetch(lessonInfo.srb_path) ]);
                         if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${lessonInfo.tig_path}`);
@@ -431,10 +457,6 @@
                    };
                    
                    switch (dataType) {
-                        case 'list': 
-                        case 'rich_text_list':
-                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
-                        
                         case 'rich_text':
                             if (feature.feature_type === 'learning_prompt') {
                                 const question = getNestedProperty(data, path + '.feature_data.prompt_question');
@@ -447,11 +469,33 @@
                                             <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
                                 }
                             } else { return createEditableDiv(path + '.feature_data.content'); }
-
+                        
+                        case 'detailed_activity_facilitation': 
+                            const facData = feature.feature_data; let promptHtml = ''; 
+                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
+                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
+                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
+                            modeDropdown += `</select>`;
+                            if (facData.activate_prompt) {
+                                promptHtml = `<div class="structured-list-item">
+                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
+                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
+                                            </div>`;
+                            } 
+                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
+                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
+                                    ${promptHtml}
+                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
+                        
+                        case 'ongoing_assessment': 
+                            const assessData = feature.feature_data;
+                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                        
+                        case 'list': case 'rich_text_list':
+                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
                         case 'prompt': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
                                     <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
-                        
                         case 'qti_assessment_item':
                             const itemData = feature.feature_data;
                             let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
@@ -481,7 +525,6 @@
                                 if (itemData.ancillary_content.graphic) { const graphic = itemData.ancillary_content.graphic; html += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
                             }
                             return html;
-
                         case 'problem': 
                              const probData = feature.feature_data;
                              let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
@@ -499,46 +542,19 @@
                                             </div>`;
                              }
                              return probHtml;
-
                         case 'session_list': 
                             let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
                             tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
                             return tableHtml += `</tbody></table>`;
-                        
                         case 'intro_with_list':
                             const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; 
                             return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
-                        
                         case 'intro_with_structured_list': 
                             return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
-
-                        case 'detailed_activity_facilitation': 
-                            const facData = feature.feature_data; let promptHtml = ''; 
-                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
-                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
-                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
-                            modeDropdown += `</select>`;
-                            if (facData.activate_prompt) {
-                                promptHtml = `<div class="structured-list-item">
-                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
-                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
-                                            </div>`;
-                            } 
-                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
-                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
-                                    ${promptHtml}
-                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
-                        
                         case 'differentiation_strategy': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
-                        
-                        case 'ongoing_assessment': 
-                            const assessData = feature.feature_data;
-                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
-                        
                         case 'question_set_list': 
                             return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
-                        
                         default: return ``;
                     }
                 }

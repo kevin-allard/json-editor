@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.53 -->
+<!-- Editor Version: rc1.beta.0.54 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,8 +25,8 @@
         .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
         #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
         
-        /* New Header Styles */
-        .header-brand { display: flex; align-items: center; gap: 12px; }
+        /* Header Styles */
+        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
         .header-brand img { height: 32px; }
         .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
         .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
@@ -37,7 +37,7 @@
         .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
         .user-profile .settings-icon:hover { color: var(--md-text-primary); }
 
-        /* Existing Styles */
+        /* All other styles are unchanged */
         .editor-column { flex: 1; min-width: 0; overflow-y: auto; padding-right: 12px; padding-bottom: 50vh; }
         .column-header { font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
@@ -85,16 +85,16 @@
 <body>
     <div class="editor-wrapper">
         <div class="editor-header">
-            <div class="header-brand">
+            <a href="https://clay3.netlify.app/" target="_blank" rel="noopener noreferrer" class="header-brand">
                 <img src="images/clay-logo.png" alt="Clay Logo">
                 <span class="product-name">Atomic Editor</span>
-            </div>
+            </a>
             <div class="header-selectors">
                 <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.53</span>
+                <span class="version-tag">v. rc1.beta.0.54</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
@@ -368,9 +368,11 @@
                                 const source = evt.from.closest('.editor-column').getAttribute('data-source');
                                 const data = source === 'srb' ? currentSrbData : currentTigData;
                                 const featureArray = getNestedProperty(data, path);
-                                const [movedItem] = featureArray.splice(evt.oldIndex, 1);
-                                featureArray.splice(evt.newIndex, 0, movedItem);
-                                renderSideBySideEditor();
+                                if (Array.isArray(featureArray)) {
+                                    const [movedItem] = featureArray.splice(evt.oldIndex, 1);
+                                    featureArray.splice(evt.newIndex, 0, movedItem);
+                                    renderSideBySideEditor();
+                                }
                             }
                         });
                     });
@@ -457,6 +459,7 @@
                    };
                    
                    switch (dataType) {
+                        case 'list': case 'rich_text_list': return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
                         case 'rich_text':
                             if (feature.feature_type === 'learning_prompt') {
                                 const question = getNestedProperty(data, path + '.feature_data.prompt_question');
@@ -469,33 +472,7 @@
                                             <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
                                 }
                             } else { return createEditableDiv(path + '.feature_data.content'); }
-                        
-                        case 'detailed_activity_facilitation': 
-                            const facData = feature.feature_data; let promptHtml = ''; 
-                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
-                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
-                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
-                            modeDropdown += `</select>`;
-                            if (facData.activate_prompt) {
-                                promptHtml = `<div class="structured-list-item">
-                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
-                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
-                                            </div>`;
-                            } 
-                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
-                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
-                                    ${promptHtml}
-                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
-                        
-                        case 'ongoing_assessment': 
-                            const assessData = feature.feature_data;
-                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
-                        
-                        case 'list': case 'rich_text_list':
-                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
-                        case 'prompt': 
-                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
-                                    <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
+                        case 'prompt': return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
                         case 'qti_assessment_item':
                             const itemData = feature.feature_data;
                             let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
@@ -551,12 +528,31 @@
                             return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
                         case 'intro_with_structured_list': 
                             return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
+                        case 'detailed_activity_facilitation': 
+                            const facData = feature.feature_data; let promptHtml = ''; 
+                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
+                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
+                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
+                            modeDropdown += `</select>`;
+                            if (facData.activate_prompt) {
+                                promptHtml = `<div class="structured-list-item">
+                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
+                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
+                                            </div>`;
+                            } 
+                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
+                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
+                                    ${promptHtml}
+                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
                         case 'differentiation_strategy': 
                             return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
+                        case 'ongoing_assessment': 
+                            const assessData = feature.feature_data;
+                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
                         case 'question_set_list': 
                             return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
                         default: return ``;
-                    }
+                   }
                 }
 
                 function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
