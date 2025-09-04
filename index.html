@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.59 -->
+<!-- Editor Version: rc1.beta.0.60 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,6 +33,16 @@
         .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
         .source-view-textarea.error { border-color: #f44336; }
         .pdf-view-iframe { width: 100%; height: 100%; border: none; }
+        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .header-brand img { height: 32px; }
+        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
+        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
+        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-profile .user-name { font-weight: 500; }
+        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
+        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
+        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
         .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
         .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
         .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
@@ -42,7 +52,6 @@
         .selector-group { position: relative; }
         .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
         .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
         .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
         .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
         .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
@@ -87,7 +96,7 @@
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.59</span>
+                <span class="version-tag">v. rc1.beta.0.60</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
@@ -171,11 +180,54 @@
                     }
                 }
 
-                function handleAddSlideBreak(e) { /* Unchanged */ }
-                function handleDeleteSlideBreak(e) { /* Unchanged */ }
-                function populateCourseSelector() { /* Unchanged */ }
-                function populateLessonSelector(courseName) { /* Unchanged */ }
-                async function handleCourseChange() { /* Unchanged */ }
+                function handleAddSlideBreak(e) {
+                    const srbColumn = e.target.closest('.editor-column').querySelector('.column-content');
+                    let topVisibleIndex = 0;
+                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
+                    if (featureElements.length > 0) {
+                        let minTop = Number.MAX_VALUE;
+                        let elementIndex = -1;
+                        for (let i = 0; i < featureElements.length; i++) {
+                            const rect = featureElements[i].getBoundingClientRect();
+                            if (rect.top >= srbColumn.getBoundingClientRect().top && rect.top < minTop) {
+                                minTop = rect.top;
+                                elementIndex = i;
+                            }
+                        }
+                        if (elementIndex !== -1) {
+                            const path = featureElements[elementIndex].getAttribute('data-path');
+                            topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
+                        }
+                    }
+                    const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
+                    currentSrbData.lesson_content_sessions[0].features.splice(topVisibleIndex + 1, 0, newBreak);
+                    renderSideBySideEditor();
+                }
+
+                function handleDeleteSlideBreak(e) {
+                    const path = e.target.getAttribute('data-path');
+                    if (!path) return;
+                    const pathParts = path.match(/\[(\d+)\]/g);
+                    if (pathParts && pathParts.length) {
+                        const index = parseInt(pathParts[pathParts.length - 1].replace(/[\[\]]/g, ''), 10);
+                        currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
+                        renderSideBySideEditor();
+                    }
+                }
+                
+                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { 
+                    lessonSelector.innerHTML = ''; 
+                    const course = manifestData.find(c => c.courseName === courseName); 
+                    if (course && course.lessons.length > 0) { 
+                        lessonSelector.disabled = false; 
+                        course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.name)));
+                    } else { 
+                        lessonSelector.disabled = true; 
+                        lessonSelector.add(new Option('No lessons available', '')); 
+                    } 
+                }
+                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
                 async function handleLessonChange() {
                     const lessonName = lessonSelector.value;
                     if (!lessonName) {
@@ -198,8 +250,63 @@
                     }
                 }
                 
-                function destroyActiveEditor(saveContent = true) { /* Unchanged */ }
-                function handleContentClick(e) { /* Unchanged */ }
+                function destroyActiveEditor(saveContent = true) {
+                    if (!activeEditor) return;
+                    const { editor, container, path, isList, source } = activeEditor;
+                    const editorId = editor.id;
+                    if (saveContent) {
+                        let value;
+                        if (isList) {
+                            const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
+                            value = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
+                        } else { value = editor.getContent(); }
+                        updateSharedData(source, path, value);
+                        syncAndRefreshViews(source, path);
+                    } else {
+                        const featureCard = container.closest('.feature-card');
+                         if(featureCard) {
+                            const featurePath = featureCard.getAttribute('data-path');
+                            const feature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
+                            const contentArea = featureCard.querySelector('.feature-content');
+                            if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath, source);
+                        }
+                    }
+                    tinymce.get(editorId)?.remove();
+                    activeEditor = null;
+                }
+
+                function handleContentClick(e) {
+                    const target = e.target.closest('.editable-content');
+                    if (!target) return;
+                    if (activeEditor && activeEditor.container === target) return;
+                    destroyActiveEditor(true); 
+                    const path = target.getAttribute('data-path');
+                    const isList = target.getAttribute('data-type') === 'list';
+                    const source = target.closest('.editor-column').getAttribute('data-source');
+                    const content = target.innerHTML;
+                    target.innerHTML = '';
+                    const textarea = document.createElement('textarea');
+                    const editorId = `editor-for-${path.replace(/[.\[\]]/g, '-')}`;
+                    textarea.id = editorId;
+                    textarea.value = content;
+                    target.appendChild(textarea);
+                    const newEditorConfig = { 
+                        selector: `#${editorId}`,
+                        plugins: 'lists link image code help wordcount autoresize equationeditor',
+                        toolbar: 'undo redo | blocks | bold italic equationeditor | alignleft aligncenter alignright | bullist numlist | code | help',
+                        menubar: true, min_height: 150, autoresize_bottom_margin: 24, 
+                        external_plugins: { 'equationeditor': 'https://tinymce-equation-editor.netlify.app/equation-editor/plugin.min.js' },
+                        extended_valid_elements: 'math[*],mstyle[*],mrow[*],mi[*],mn[*],mo[*],msup[*],msub[*],mfrac[*],msqrt[*],mtable[*],mtr[*],mtd[*]',
+                        content_css: 'https://cdn.jsdelivr.net/npm/mathlive/dist/mathlive-static.css',
+                        setup: (editor) => { 
+                            editor.on('init', () => editor.focus()); 
+                            activeEditor = { editor, container: target, path, isList, source }; 
+                        } 
+                    };
+                    if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic equationeditor | bullist numlist | code | help'; }
+                    tinymce.init(newEditorConfig);
+                }
+                
                 function updateSharedData(source, path, value) { /* Unchanged */ }
                 function syncAndRefreshViews(source, path) { /* Unchanged */ }
                 function handleInputChange(e) { /* Unchanged */ }
