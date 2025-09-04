@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.61 -->
+<!-- Editor Version: rc1.beta.0.59 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
 
     <style>
-        /* All CSS is unchanged */
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
             --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
@@ -88,7 +87,7 @@
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.61</span>
+                <span class="version-tag">v. rc1.beta.0.59</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
@@ -124,8 +123,8 @@
                 const lessonSelector = document.getElementById('lesson-selector');
                 const saveButton = document.getElementById('save-button');
                 
-                function getNestedProperty(obj, path) { /* ... */ }
-                function setNestedProperty(obj, path, value) { /* ... */ }
+                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
                 
                 async function init() {
                     try {
@@ -159,7 +158,19 @@
                     renderSideBySideEditor();
                 }
                 
-                function handleSourceEdit(e) { /* Unchanged */ }
+                function handleSourceEdit(e) {
+                    const source = e.target.closest('.editor-column').getAttribute('data-source');
+                    const value = e.target.value;
+                    try {
+                        const newData = JSON.parse(value);
+                        if (source === 'srb') currentSrbData = newData;
+                        else currentTigData = newData;
+                        e.target.classList.remove('error');
+                    } catch (err) {
+                        e.target.classList.add('error');
+                    }
+                }
+
                 function handleAddSlideBreak(e) { /* Unchanged */ }
                 function handleDeleteSlideBreak(e) { /* Unchanged */ }
                 function populateCourseSelector() { /* Unchanged */ }
@@ -245,28 +256,35 @@
                         (data.lesson_support_sessions || []).forEach((session, sIndex) => {
                             mainContentHtml += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
                             const allSrbItems = (currentSrbData.lesson_overview_items || []).concat(currentSrbData.lesson_content_sessions[0]?.features || []);
-                            const srbUuidsWithIndex = new Map(allSrbItems.map((item, index) => [item.uuid, index]));
+                            const srbBreakUUIDs = new Set((allSrbItems.filter(f => f.feature_type === 'slide_break')).map(b => b.uuid));
                             
                             const combinedItems = [ ...session.support_items ];
-                            allSrbItems.forEach((srbItem, srbIndex) => {
-                                if(srbItem.feature_type === 'slide_break') {
-                                    const precedingSrbUuid = srbIndex > 0 ? allSrbItems[srbIndex - 1].uuid : null;
-                                    const tigTargetIndex = precedingSrbUuid ? combinedItems.findIndex(item => item.linked_student_uuid === precedingSrbUuid) : -1;
-                                    if (tigTargetIndex > -1) {
-                                        combinedItems.splice(tigTargetIndex + 1, 0, srbItem);
+                            let srbPointer = 0;
+                            for(let i=0; i<combinedItems.length; i++){
+                                const tigItem = combinedItems[i];
+                                if(tigItem.linked_student_uuid){
+                                    while(srbPointer < allSrbItems.length && allSrbItems[srbPointer].uuid !== tigItem.linked_student_uuid){
+                                        if(srbBreakUUIDs.has(allSrbItems[srbPointer].uuid)){
+                                            combinedItems.splice(i, 0, allSrbItems[srbPointer]);
+                                            i++;
+                                        }
+                                        srbPointer++;
                                     }
                                 }
-                            });
+                            }
                             
                             const blocks = combinedItems.reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
                             const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
-
                             blockOrder.forEach(blockName => {
                                 if (blocks[blockName]) {
                                     mainContentHtml += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
                                     blocks[blockName].forEach(feature => { 
-                                        const originalPath = `lesson_support_sessions[${sIndex}].support_items[${session.support_items.indexOf(feature)}]`;
-                                        mainContentHtml += renderFeature(feature, feature.feature_type === 'slide_break' ? `slide_break_${feature.uuid}` : originalPath, source); 
+                                        let path = `slide_break_${feature.uuid}`;
+                                        if (feature.feature_type !== 'slide_break') {
+                                            const originalIndex = session.support_items.indexOf(feature);
+                                            path = `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`;
+                                        }
+                                        mainContentHtml += renderFeature(feature, path, source); 
                                     });
                                     mainContentHtml += `</div></div>`;
                                 }
@@ -281,11 +299,8 @@
                 function renderFeatureContent(feature, path, source) { /* Unchanged and Complete */ }
                 function saveChanges() { /* Unchanged */ }
                 
-                // All functions defined inside runApp to ensure scope
-                // init();
+                init();
             }
-
-            // Final call
             bootstrap();
         });
     </script>
