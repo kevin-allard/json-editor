@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.57 -->
+<!-- Editor Version: rc1.beta.0.59 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,10 +37,12 @@
         .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
         .column-content { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
-        .view-toggle-btn { background: none; border: 1px solid var(--md-border-color); color: var(--md-text-secondary); font-family: monospace; font-size: 1.2rem; cursor: pointer; border-radius: 4px; padding: 2px 8px; }
-        .view-toggle-btn:hover { background-color: #e0e0e0; }
+        .column-header-controls { display: flex; align-items: center; gap: 8px; }
+        .view-toggle-btn { background: none; border: 1px solid var(--md-border-color); color: var(--md-text-secondary); cursor: pointer; border-radius: 4px; padding: 4px 10px; font-size: 0.9rem; font-weight: 500; }
+        .view-toggle-btn.active { background-color: var(--md-primary-color); color: white; border-color: var(--md-primary-color); }
         .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
         .source-view-textarea.error { border-color: #f44336; }
+        .pdf-view-iframe { width: 100%; height: 100%; border: none; }
         .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
         .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
         .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
@@ -94,7 +96,7 @@
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.57</span>
+                <span class="version-tag">v. rc1.beta.0.59</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
@@ -124,6 +126,7 @@
             function runApp() {
                 let currentTigData = null; let currentSrbData = null; let manifestData = []; let activeEditor = null;
                 let srbViewMode = 'editor'; let tigViewMode = 'editor';
+                let currentLessonInfo = null;
                 const mainContent = document.getElementById('editor-main-content');
                 const courseSelector = document.getElementById('course-selector');
                 const lessonSelector = document.getElementById('lesson-selector');
@@ -158,8 +161,9 @@
 
                 function handleViewToggle(e) {
                     const source = e.target.closest('.editor-column').getAttribute('data-source');
-                    if (source === 'srb') srbViewMode = srbViewMode === 'editor' ? 'source' : 'editor';
-                    else if (source === 'tig') tigViewMode = tigViewMode === 'editor' ? 'source' : 'editor';
+                    const view = e.target.getAttribute('data-view');
+                    if (source === 'srb') srbViewMode = view;
+                    else if (source === 'tig') tigViewMode = view;
                     renderSideBySideEditor();
                 }
                 
@@ -177,7 +181,7 @@
                 }
 
                 function handleAddSlideBreak(e) {
-                    const srbColumn = e.target.closest('.editor-column');
+                    const srbColumn = e.target.closest('.editor-column').querySelector('.column-content');
                     let topVisibleIndex = 0;
                     const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
                     if (featureElements.length > 0) {
@@ -217,7 +221,7 @@
                     const course = manifestData.find(c => c.courseName === courseName); 
                     if (course && course.lessons.length > 0) { 
                         lessonSelector.disabled = false; 
-                        course.lessons.forEach((lesson) => lessonSelector.add(new Option(lesson.name, lesson.name)));
+                        course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.name)));
                     } else { 
                         lessonSelector.disabled = true; 
                         lessonSelector.add(new Option('No lessons available', '')); 
@@ -228,15 +232,16 @@
                     const lessonName = lessonSelector.value;
                     if (!lessonName) {
                         mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
-                        currentTigData = null; currentSrbData = null; return;
+                        currentTigData = null; currentSrbData = null; currentLessonInfo = null;
+                        return;
                     }
                     mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
                     const course = manifestData.find(c => c.courseName === courseSelector.value);
-                    const lessonInfo = course.lessons.find(l => l.name === lessonName);
+                    currentLessonInfo = course.lessons.find(l => l.name === lessonName);
                     try {
-                        const [tigResponse, srbResponse] = await Promise.all([ fetch(lessonInfo.tig_path), fetch(lessonInfo.srb_path) ]);
-                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${lessonInfo.tig_path}`);
-                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${lessonInfo.srb_path}`);
+                        const [tigResponse, srbResponse] = await Promise.all([ fetch(currentLessonInfo.tig_path), fetch(currentLessonInfo.srb_path) ]);
+                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${currentLessonInfo.tig_path}`);
+                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${currentLessonInfo.srb_path}`);
                         currentTigData = await tigResponse.json();
                         currentSrbData = await srbResponse.json();
                         renderSideBySideEditor();
@@ -371,18 +376,23 @@
                     mainContent.innerHTML = `
                         <div class="editor-column" data-source="srb">
                             <div class="column-header">
-                                <div class="srb-column-header">
-                                    <span>Student View <small>(SRB)</small></span>
-                                    <button class="add-break-btn">Add Slide Break</button>
+                                <div class="srb-column-header"><span>Student View <small>(SRB)</small></span><button class="add-break-btn">Add Slide Break</button></div>
+                                <div class="column-header-controls">
+                                    <button class="view-toggle-btn ${srbViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
+                                    <button class="view-toggle-btn ${srbViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${srbViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
                                 </div>
-                                <button class="view-toggle-btn" title="Toggle Source View">&lt;&gt;</button>
                             </div>
                             <div class="column-content">${renderColumnContent('srb')}</div>
                         </div>
                         <div class="editor-column" data-source="tig">
                             <div class="column-header">
                                 <span>Teacher View <small>(TIG)</small></span>
-                                <button class="view-toggle-btn" title="Toggle Source View">&lt;&gt;</button>
+                                <div class="column-header-controls">
+                                    <button class="view-toggle-btn ${tigViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
+                                    <button class="view-toggle-btn ${tigViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${tigViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
+                                </div>
                             </div>
                             <div class="column-content">${renderColumnContent('tig')}</div>
                         </div>`;
@@ -417,7 +427,13 @@
                     if (mode === 'source') {
                         return `<textarea class="source-view-textarea">${JSON.stringify(data, null, 2)}</textarea>`;
                     }
-
+                    if (mode === 'pdf') {
+                        if (!currentLessonInfo) return '<p>Lesson info not loaded.</p>';
+                        const jsonPath = source === 'srb' ? currentLessonInfo.srb_path : currentLessonInfo.tig_path;
+                        const pdfPath = jsonPath.replace(/\.json$/, source === 'srb' ? ' (SE).pdf' : ' (TIG).pdf');
+                        return `<iframe class="pdf-view-iframe" src="${pdfPath}"></iframe>`;
+                    }
+                    
                     if (!data) return '<div class="loader">Data not loaded.</div>';
                     let overviewHtml = renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source, true);
                     let mainContentHtml = '';
@@ -606,7 +622,7 @@
                             return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
                         
                         default: return ``;
-                    }
+                   }
                 }
 
                 function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }

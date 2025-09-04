@@ -5,7 +5,9 @@
      {
         "name": "M1 T1 L1: A Picture is Worth a Thousand Words",
         "tig_path": "data/CA_SM5e_A01_TIG_M01_T01_L01.json",
-        "srb_path": "data/CA_SM5e_A01_SRB_M01_T01_L01.json"
+        "srb_path": "data/CA_SM5e_A01_SRB_M01_T01_L01.json",
+        "tig_pdf_path": "data/CA_SM5e_A1_TIG_M01_T01_L01.pdf",
+        "srb_pdf_path": "data/CA_SM5e_A1_SE_M01_T01_L01_AK.pdf"
       }
     ]
   },
