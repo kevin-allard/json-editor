@@ -150,19 +150,19 @@
             border-radius: 12px;
             font-family: monospace;
         }
-        .feature-content-preview {
+        .feature-content {
             padding: 16px;
             font-size: 14px;
             color: var(--text-color-secondary);
         }
-        .feature-content-preview ul, .feature-content-preview ol {
+        .feature-content ul, .feature-content ol {
             padding-left: 20px;
             margin: 0;
         }
-        .feature-content-preview p {
+        .feature-content p {
             margin: 0 0 8px 0;
         }
-        .feature-content-preview p:last-child {
+        .feature-content p:last-child {
             margin-bottom: 0;
         }
 
@@ -213,6 +213,19 @@
         .metadata-display-list { font-size: 14px; line-height: 1.6; }
         .metadata-display-list dt { font-weight: 500; }
         .metadata-display-list dd { margin-left: 16px; margin-bottom: 8px; color: var(--text-color-secondary); }
+
+        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
+        .qti-interaction { border-left: 4px solid var(--primary-color); padding-left: 16px; margin-top: 16px; }
+        .qti-answer { border-left: 4px solid #9c27b0; padding-left: 16px; }
+        .graphic-placeholder { border: 2px dashed var(--border-color); padding: 16px; text-align: center; color: var(--text-color-secondary); border-radius: 4px; }
+        .answer-header { display: flex; justify-content: space-between; align-items: center; }
+        .sample-answer-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+        th { font-weight: 500; color: var(--text-color-secondary); }
+        .structured-list-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+        .form-field { margin-bottom: 20px; }
+        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--text-color-secondary); }
     </style>
 </head>
 <body>
@@ -260,7 +273,7 @@
 <script id="main-script">
 document.addEventListener('DOMContentLoaded', () => {
     
-    const APP_VERSION = "rc1.beta.0.30";
+    const APP_VERSION = "rc1.beta.0.31";
 
     // --- STATE MANAGEMENT ---
     let srbData = null;
@@ -280,8 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UTILITY FUNCTIONS ---
     function truncateText(text, length = 100) {
         if (!text || typeof text !== 'string') return '';
-        if (text.length <= length) return text;
-        return text.substring(0, length) + '...';
+        const strippedText = text.replace(/<[^>]*>?/gm, ''); // Remove HTML tags for preview
+        if (strippedText.length <= length) return strippedText;
+        return strippedText.substring(0, length) + '...';
     }
     
     // --- RENDER FUNCTIONS ---
@@ -392,28 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!feature || !feature.feature_data) return '';
         
         const isSelected = feature.uuid === selectedFeatureUuid;
-        let previewHtml = `<em>No preview available for data type: ${feature.feature_data.data_type}</em>`;
-
-        switch(feature.feature_data.data_type) {
-            case 'rich_text':
-                previewHtml = truncateText(feature.feature_data.content || feature.feature_data.prompt_question, 120);
-                break;
-            case 'rich_text_list':
-            case 'list':
-                previewHtml = `<ul>${(feature.feature_data.items || []).slice(0, 2).map(item => `<li>${truncateText(item)}</li>`).join('')}</ul>`;
-                if ((feature.feature_data.items || []).length > 2) {
-                    previewHtml += `<em>...and more</em>`;
-                }
-                break;
-            case 'prompt':
-                previewHtml = truncateText(feature.feature_data.text, 120);
-                break;
-            case 'qti_assessment_item':
-                previewHtml = truncateText(feature.feature_data.item_body?.stem, 120);
-                break;
-            default:
-                 previewHtml = `Contains ${Object.keys(feature.feature_data).join(', ')}`;
-        }
+        const contentHtml = renderFeatureContent(feature, 'preview');
 
         return `
             <div class="feature-card ${isSelected ? 'selected' : ''}" data-uuid="${feature.uuid}">
@@ -421,8 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${feature.feature_title}</h3>
                     <span class="feature-type-badge">${feature.feature_type}</span>
                 </div>
-                <div class="feature-content-preview">
-                    ${previewHtml}
+                <div class="feature-content">
+                    ${contentHtml}
                 </div>
             </div>
         `;
@@ -458,6 +451,57 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    function renderFeatureContent(feature, mode = 'full') {
+        const data = feature.feature_data;
+        const dataType = data.data_type;
+
+        switch (dataType) {
+            case 'list': 
+            case 'rich_text_list':
+                const listTag = data.is_numbered ? 'ol' : 'ul';
+                return `<${listTag}>${(data.items || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
+            
+            case 'rich_text':
+                if (feature.feature_type === 'learning_prompt') {
+                    return `<strong>${data.prompt_question}</strong>`;
+                }
+                return data.content || '';
+
+            case 'prompt': 
+                return `<strong>${data.title || ''}</strong><p>${data.text || ''}</p>`;
+            
+            case 'qti_assessment_item':
+                let qtiHtml = data.item_body.stem;
+                (data.item_body.interactions || []).forEach(interaction => {
+                    qtiHtml += `<div class="qti-interaction"><label>${interaction.prompt}</label><div class="read-only-content">(Response Area)</div></div>`;
+                });
+                return qtiHtml;
+
+            case 'problem': 
+                 return data.content || '';
+
+            case 'session_list': 
+                let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Duration</th></tr></thead><tbody>`; 
+                tableHtml += (data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${item.duration_minutes} min</td></tr>`).join(''); 
+                return tableHtml += `</tbody></table>`;
+            
+            case 'intro_with_list':
+                const introListTag = data.is_numbered ? 'ol' : 'ul'; 
+                return `${data.introduction || ''}<${introListTag}>${(data.items || []).map(item => `<li>${item}</li>`).join('')}</${introListTag}>`;
+            
+            case 'intro_with_structured_list': 
+                let structuredHtml = data.introduction || '';
+                structuredHtml += (data.items || []).map(item => `<div class="structured-list-item"><strong>${item.title}</strong><p>${item.description}</p></div>`).join('');
+                return structuredHtml;
+
+            case 'static_header':
+            case 'activity_header':
+                return ``; // Content is in the title, no body needed for card.
+            
+            default: return `<em>Preview for data type "${dataType}" not implemented.</em>`;
+        }
+    }
+
     function fullRender() {
         renderDocProperties();
         renderCanvas();
@@ -485,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeApp() {
         versionDisplay.textContent = APP_VERSION;
         try {
+            // For this version, we will hardcode loading the single SRB file.
             const response = await fetch('data/CA_SM5e_A01_SRB_M01_T01_L01.json');
             if (!response.ok) throw new Error("Could not load SRB JSON file.");
             srbData = await response.json();
