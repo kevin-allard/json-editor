@@ -100,6 +100,16 @@
             flex-grow: 1; 
             overflow-y: auto;
         }
+        .panel-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .panel-footer button {
+            flex-grow: 1;
+        }
 
         #canvas { padding: 24px; }
         
@@ -175,10 +185,24 @@
             transition: box-shadow 0.2s ease, background-color 0.2s ease;
         }
         button:hover { background-color: rgba(0,0,0,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        button.primary { background-color: var(--primary-color); color: white; }
+        button.primary:hover { background-color: var(--primary-hover); }
         select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--panel-bg); font-size: 14px; }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-weight: 500; color: var(--label-color); margin-bottom: 8px; font-size: 14px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; }
+        .form-group input[readonly] { background-color: var(--bg-color); }
+        .checkbox-group label { display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; }
+        .checkbox-group input { width: auto; margin-right: 8px; }
+
+        .collapsible-section { border-bottom: 1px solid var(--border-color); margin-bottom: 16px; padding-bottom: 16px; }
+        .collapsible-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .collapsible-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
+        .collapsible-header h4, .collapsible-header h5 { margin: 0; font-size: 16px; font-weight: 500; }
+        .collapsible-toggle-icon { transition: transform 0.2s ease-in-out; color: var(--text-color-secondary); width: 24px; height: 24px; }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, margin-top 0.3s ease-out; margin-top: 0; }
+        .collapsible-section.open > .collapsible-content { max-height: 1000px; margin-top: 16px; }
+        .collapsible-section.open > .collapsible-header .collapsible-toggle-icon { transform: rotate(180deg); }
 
         #properties-content textarea {
             width: 100%;
@@ -186,6 +210,9 @@
             font-family: monospace;
             font-size: 13px;
         }
+        .metadata-display-list { font-size: 14px; line-height: 1.6; }
+        .metadata-display-list dt { font-weight: 500; }
+        .metadata-display-list dd { margin-left: 16px; margin-bottom: 8px; color: var(--text-color-secondary); }
     </style>
 </head>
 <body>
@@ -206,6 +233,10 @@
             <div class="panel-header">Document Properties</div>
             <div id="doc-properties-content" class="panel-content">
                 <p>Loading document...</p>
+            </div>
+             <div class="panel-footer">
+                <button id="open-json-btn">Open JSON</button>
+                <button id="generate-json-btn" class="primary">Generate JSON</button>
             </div>
         </div>
 
@@ -229,11 +260,16 @@
 <script id="main-script">
 document.addEventListener('DOMContentLoaded', () => {
     
-    const APP_VERSION = "rc1.beta.0.29";
+    const APP_VERSION = "rc1.beta.0.30";
 
     // --- STATE MANAGEMENT ---
     let srbData = null;
     let selectedFeatureUuid = null;
+    let documentState = { // For holding Lenses-like properties for ClearMath
+        linkedActivityIds: [],
+        availableSupportLevels: ['core', 'light', 'moderate', 'intensive', 'light-multilingual', 'moderate-multilingual', 'intensive-multilingual']
+    };
+    let activityLookup = {};
     
     // --- UI ELEMENTS ---
     const versionDisplay = document.getElementById('version-display');
@@ -250,25 +286,83 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- RENDER FUNCTIONS ---
     function renderDocProperties() {
-        if (!srbData || !srbData.lesson_metadata) {
+        if (!srbData) {
             docPropertiesContent.innerHTML = `<p>No document metadata found.</p>`;
             return;
         }
-        const meta = srbData.lesson_metadata;
+        
+        const meta = srbData.lesson_metadata || {};
+        
         docPropertiesContent.innerHTML = `
             <div class="form-group">
-                <label>Lesson Title</label>
-                <input type="text" value="${meta.lesson_title || ''}" readonly>
-            </div>
-            <div class="form-group">
-                <label>Lesson Subtitle</label>
-                <input type="text" value="${meta.lesson_subtitle || ''}" readonly>
-            </div>
-             <div class="form-group">
-                <label>Lesson UUID</label>
+                <label>Document ID</label>
                 <input type="text" value="${srbData.lesson_uuid || ''}" readonly>
             </div>
+
+            <div id="relationships-section" class="collapsible-section open">
+                <div class="collapsible-header">
+                    <h4>Relationships</h4>
+                    <svg class="collapsible-toggle-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-section open">
+                        <div class="collapsible-header">
+                            <h5>Linked Activities</h5>
+                            <svg class="collapsible-toggle-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg>
+                        </div>
+                        <div class="collapsible-content">
+                            <div id="activity-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-section">
+                        <div class="collapsible-header">
+                            <h5>Levels of Support</h5>
+                            <svg class="collapsible-toggle-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg>
+                        </div>
+                        <div class="collapsible-content">
+                            <div id="support-levels-list" class="checkbox-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible-section">
+                <div class="collapsible-header">
+                    <h4>Metadata</h4>
+                    <svg class="collapsible-toggle-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/></svg>
+                </div>
+                <div class="collapsible-content">
+                    <dl class="metadata-display-list">
+                        <dt>Lesson Title</dt>
+                        <dd>${meta.lesson_title || 'N/A'}</dd>
+                        <dt>Lesson Subtitle</dt>
+                        <dd>${meta.lesson_subtitle || 'N/A'}</dd>
+                    </dl>
+                </div>
+            </div>
         `;
+        renderSupportLevels();
+        renderLinkedActivities();
+    }
+    
+    function renderSupportLevels() {
+        const listEl = document.getElementById('support-levels-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        const allLevels = ['core', 'light', 'moderate', 'intensive', 'light-multilingual', 'moderate-multilingual', 'intensive-multilingual'];
+        allLevels.forEach(level => {
+            const isChecked = documentState.availableSupportLevels.includes(level);
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" data-level="${level}" ${isChecked ? 'checked' : ''}> ${level.replace(/-/g, ' ')}`;
+            listEl.appendChild(label);
+        });
+    }
+
+    function renderLinkedActivities() {
+        const listEl = document.getElementById('activity-list');
+        if (!listEl) return;
+        listEl.innerHTML = '<p style="font-size: 0.9em; color: var(--text-color-secondary);">Functionality not yet implemented for this document type.</p>';
     }
 
     function renderCanvas() {
@@ -279,13 +373,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '';
         
-        // Render Overview Items
         html += `<h2 class="section-header">Lesson Overview</h2>`;
         (srbData.lesson_overview_items || []).forEach(feature => {
             html += renderFeatureCard(feature);
         });
 
-        // Render Content Session Items
         if (srbData.lesson_content_sessions && srbData.lesson_content_sessions[0]) {
             html += `<h2 class="section-header">Lesson Content</h2>`;
             (srbData.lesson_content_sessions[0].features || []).forEach(feature => {
@@ -321,7 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             default:
                  previewHtml = `Contains ${Object.keys(feature.feature_data).join(', ')}`;
-
         }
 
         return `
@@ -382,12 +473,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    docPropertiesContent.addEventListener('click', (e) => {
+        const header = e.target.closest('.collapsible-header');
+        if (header) {
+            e.preventDefault();
+            header.parentElement.classList.toggle('open');
+        }
+    });
+
     // --- INITIALIZATION ---
     async function initializeApp() {
         versionDisplay.textContent = APP_VERSION;
         try {
-            // For this version, we will hardcode loading the single SRB file.
-            // The manifest logic will be re-integrated in the main app.
             const response = await fetch('data/CA_SM5e_A01_SRB_M01_T01_L01.json');
             if (!response.ok) throw new Error("Could not load SRB JSON file.");
             srbData = await response.json();
