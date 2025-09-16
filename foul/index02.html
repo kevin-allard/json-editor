@@ -1,0 +1,659 @@
+<!-- Editor Version: rc1.beta.0.61 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic Editor</title>
+    
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce6-formula/dist/style.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        :root {
+            --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
+            --md-border-color: #e0e0e0; --md-text-primary: #212121; --md-text-secondary: #757575;
+            --header-height: 90px;
+        }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--md-bg-main); color: var(--md-text-primary); }
+        .editor-wrapper { display: flex; flex-direction: column; height: 100vh; }
+        .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
+        #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
+        .editor-column { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
+        .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
+        .column-content { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
+        .column-header-controls { display: flex; align-items: center; gap: 8px; }
+        .view-toggle-btn { background: none; border: 1px solid var(--md-border-color); color: var(--md-text-secondary); cursor: pointer; border-radius: 4px; padding: 4px 10px; font-size: 0.9rem; font-weight: 500; }
+        .view-toggle-btn.active { background-color: var(--md-primary-color); color: white; border-color: var(--md-primary-color); }
+        .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
+        .source-view-textarea.error { border-color: #f44336; }
+        .pdf-view-iframe { width: 100%; height: 100%; border: none; }
+        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .header-brand img { height: 32px; }
+        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
+        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
+        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-profile .user-name { font-weight: 500; }
+        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
+        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
+        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
+        .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
+        .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
+        .slide-break-feature button { background: #ffcdd2; color: #c62828; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
+        .slide-break-indicator { height: 2px; background-image: linear-gradient(to right, var(--md-primary-color) 33%, rgba(255,255,255,0) 0%); background-position: bottom; background-size: 3px 1px; background-repeat: repeat-x; margin: 24px 0; }
+        .drag-handle { cursor: grab; }
+        .selector-group { position: relative; }
+        .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
+        .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
+        .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
+        .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
+        .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
+        .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; }
+        .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-text-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--md-border-color); border-radius: 8px 8px 0 0; }
+        .block-group-content { padding: 8px 24px 24px 24px; }
+        .feature-card { background-color: var(--md-bg-card); border-radius: 4px; margin-bottom: 20px; box-shadow: var(--md-elevation-1); }
+        .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
+        .feature-header h3 { margin: 0; font-size: 18px; font-weight: 500; flex-grow: 1; }
+        .feature-header .feature-type-badge { font-size: 12px; color: var(--md-primary-color); background-color: #e8eaf6; padding: 4px 8px; border-radius: 12px; font-family: monospace; }
+        .feature-content { padding: 24px; }
+        .form-field { margin-bottom: 20px; }
+        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
+        .form-field input[type="text"], textarea, select { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
+        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); width: 100%; }
+        .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
+        .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
+        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
+        .static-header-card { display: flex; align-items: center; gap: 16px; padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
+        .static-header-card select { flex: 0 0 90px; }
+        .static-header-card input { flex: 1 1 auto; }
+        .qti-interaction { border-left: 4px solid var(--md-primary-color); padding-left: 16px; margin-top: 16px; }
+        .qti-answer { border-left: 4px solid magenta; padding-left: 16px; }
+        .graphic-placeholder { border: 2px dashed var(--md-border-color); padding: 16px; text-align: center; color: var(--md-text-secondary); border-radius: 4px; }
+        .answer-header { display: flex; justify-content: space-between; align-items: center; }
+        .sample-answer-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
+        th { font-weight: 500; color: var(--md-text-secondary); }
+        .structured-list-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="editor-wrapper">
+        <div class="editor-header">
+            <a href="https://clay3.netlify.app/#app" class="header-brand">
+                <img src="images/clay-logo.png" alt="Clay Logo">
+                <span class="product-name">Atomic Editor</span>
+            </a>
+            <div class="header-selectors">
+                <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
+                <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
+            </div>
+            <div class="header-controls">
+                <span class="version-tag">v. rc1.beta.0.60</span>
+                <button id="save-button" class="save-button">Save Changes</button>
+                <div class="user-profile">
+                    <span class="user-name">K. Allard</span>
+                    <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <img src="images/avatar.png" alt="User Avatar" class="avatar">
+                </div>
+            </div>
+        </div>
+        <main id="editor-main-content">
+            <div class="loader">Loading Editor...</div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bootstrap = () => {
+                const mainContent = document.getElementById('editor-main-content');
+                if (typeof TINY_MCE_API_KEY === 'undefined' || !TINY_MCE_API_KEY) { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: TinyMCE API Key not found.</div>`; return; }
+                const script = document.createElement('script');
+                script.src = `https://cdn.tiny.cloud/1/${TINY_MCE_API_KEY}/tinymce/6/tinymce.min.js`;
+                script.referrerPolicy = 'origin';
+                script.onload = () => { console.log("TinyMCE loaded."); runApp(); };
+                script.onerror = () => { mainContent.innerHTML = `<div class="loader" style="color:red;">Error: Failed to load TinyMCE script.</div>`; }
+                document.head.appendChild(script);
+            };
+
+            function runApp() {
+                let currentTigData = null; let currentSrbData = null; let manifestData = []; let activeEditor = null;
+                let srbViewMode = 'editor'; let tigViewMode = 'editor';
+                let currentLessonInfo = null;
+                const mainContent = document.getElementById('editor-main-content');
+                const courseSelector = document.getElementById('course-selector');
+                const lessonSelector = document.getElementById('lesson-selector');
+                const saveButton = document.getElementById('save-button');
+                
+                function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+                function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
+                
+                async function init() {
+                    try {
+                        const response = await fetch('manifest.json');
+                        if (!response.ok) throw new Error("Manifest not found.");
+                        manifestData = await response.json();
+                        populateCourseSelector();
+                        courseSelector.addEventListener('change', handleCourseChange);
+                        lessonSelector.addEventListener('change', handleLessonChange);
+                        saveButton.addEventListener('click', saveChanges);
+                        mainContent.addEventListener('click', handleEditorEvents);
+                        mainContent.addEventListener('input', handleInputChange);
+                        await handleCourseChange();
+                    } catch (error) {
+                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
+                    }
+                }
+                
+                function handleEditorEvents(e) {
+                    if (e.target.closest('.editable-content')) handleContentClick(e);
+                    if (e.target.closest('.add-break-btn')) handleAddSlideBreak(e);
+                    if (e.target.closest('.delete-break-btn')) handleDeleteSlideBreak(e);
+                    if (e.target.closest('.view-toggle-btn')) handleViewToggle(e);
+                }
+
+                function handleViewToggle(e) {
+                    const source = e.target.closest('.editor-column').getAttribute('data-source');
+                    const view = e.target.getAttribute('data-view');
+                    if (source === 'srb') srbViewMode = view;
+                    else if (source === 'tig') tigViewMode = view;
+                    renderSideBySideEditor();
+                }
+                
+                function handleSourceEdit(e) {
+                    const source = e.target.closest('.editor-column').getAttribute('data-source');
+                    const value = e.target.value;
+                    try {
+                        const newData = JSON.parse(value);
+                        if (source === 'srb') currentSrbData = newData;
+                        else currentTigData = newData;
+                        e.target.classList.remove('error');
+                    } catch (err) {
+                        e.target.classList.add('error');
+                    }
+                }
+
+                function handleAddSlideBreak(e) {
+                    const srbColumn = e.target.closest('.editor-column').querySelector('.column-content');
+                    let topVisibleIndex = 0;
+                    const featureElements = Array.from(srbColumn.querySelectorAll('[data-path^="lesson_content_sessions[0].features"]'));
+                    if (featureElements.length > 0) {
+                        let minTop = Number.MAX_VALUE;
+                        let elementIndex = -1;
+                        for (let i = 0; i < featureElements.length; i++) {
+                            const rect = featureElements[i].getBoundingClientRect();
+                            if (rect.top >= srbColumn.getBoundingClientRect().top && rect.top < minTop) {
+                                minTop = rect.top;
+                                elementIndex = i;
+                            }
+                        }
+                        if (elementIndex !== -1) {
+                            const path = featureElements[elementIndex].getAttribute('data-path');
+                            topVisibleIndex = parseInt((path.match(/\[(\d+)\]$/) || [])[1], 10);
+                        }
+                    }
+                    const newBreak = { uuid: `slide-break-${new Date().getTime()}`, feature_type: "slide_break", feature_title: "Slide Break", feature_data: { data_type: "slide_break" } };
+                    currentSrbData.lesson_content_sessions[0].features.splice(topVisibleIndex + 1, 0, newBreak);
+                    renderSideBySideEditor();
+                }
+
+                function handleDeleteSlideBreak(e) {
+                    const path = e.target.getAttribute('data-path');
+                    if (!path) return;
+                    const pathParts = path.match(/\[(\d+)\]/g);
+                    if (pathParts && pathParts.length) {
+                        const index = parseInt(pathParts[pathParts.length - 1].replace(/[\[\]]/g, ''), 10);
+                        currentSrbData.lesson_content_sessions[0].features.splice(index, 1);
+                        renderSideBySideEditor();
+                    }
+                }
+                
+                function populateCourseSelector() { manifestData.forEach(course => courseSelector.add(new Option(course.courseName, course.courseName))); }
+                function populateLessonSelector(courseName) { 
+                    lessonSelector.innerHTML = ''; 
+                    const course = manifestData.find(c => c.courseName === courseName); 
+                    if (course && course.lessons.length > 0) { 
+                        lessonSelector.disabled = false; 
+                        course.lessons.forEach(lesson => lessonSelector.add(new Option(lesson.name, lesson.name)));
+                    } else { 
+                        lessonSelector.disabled = true; 
+                        lessonSelector.add(new Option('No lessons available', '')); 
+                    } 
+                }
+                async function handleCourseChange() { populateLessonSelector(courseSelector.value); await handleLessonChange(); }
+                async function handleLessonChange() {
+                    const lessonName = lessonSelector.value;
+                    if (!lessonName) {
+                        mainContent.innerHTML = `<div class="loader">Select a lesson to begin...</div>`;
+                        currentTigData = null; currentSrbData = null; currentLessonInfo = null;
+                        return;
+                    }
+                    mainContent.innerHTML = `<div class="loader">Loading lesson files...</div>`;
+                    const course = manifestData.find(c => c.courseName === courseSelector.value);
+                    currentLessonInfo = course.lessons.find(l => l.name === lessonName);
+                    try {
+                        const [tigResponse, srbResponse] = await Promise.all([ fetch(currentLessonInfo.tig_path), fetch(currentLessonInfo.srb_path) ]);
+                        if (!tigResponse.ok) throw new Error(`Could not fetch TIG: ${currentLessonInfo.tig_path}`);
+                        if (!srbResponse.ok) throw new Error(`Could not fetch SRB: ${currentLessonInfo.srb_path}`);
+                        currentTigData = await tigResponse.json();
+                        currentSrbData = await srbResponse.json();
+                        renderSideBySideEditor();
+                    } catch (error) {
+                        mainContent.innerHTML = `<div class="loader" style="color:red;">Error: ${error.message}</div>`;
+                    }
+                }
+                
+                function destroyActiveEditor(saveContent = true) {
+                    if (!activeEditor) return;
+                    const { editor, container, path, isList, source } = activeEditor;
+                    const editorId = editor.id;
+                    if (saveContent) {
+                        let value;
+                        if (isList) {
+                            const tempDiv = document.createElement('div'); tempDiv.innerHTML = editor.getContent();
+                            value = Array.from(tempDiv.querySelectorAll('li')).map(li => li.innerHTML.trim());
+                        } else { value = editor.getContent(); }
+                        updateSharedData(source, path, value);
+                        syncAndRefreshViews(source, path);
+                    } else {
+                        const featureCard = container.closest('.feature-card');
+                         if(featureCard) {
+                            const featurePath = featureCard.getAttribute('data-path');
+                            const feature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
+                            const contentArea = featureCard.querySelector('.feature-content');
+                            if(contentArea) contentArea.innerHTML = renderFeatureContent(feature, featurePath, source);
+                        }
+                    }
+                    tinymce.get(editorId)?.remove();
+                    activeEditor = null;
+                }
+
+                function handleContentClick(e) {
+                    const target = e.target.closest('.editable-content');
+                    if (!target) return;
+                    if (activeEditor && activeEditor.container === target) return;
+                    destroyActiveEditor(true); 
+                    const path = target.getAttribute('data-path');
+                    const isList = target.getAttribute('data-type') === 'list';
+                    const source = target.closest('.editor-column').getAttribute('data-source');
+                    const content = target.innerHTML;
+                    target.innerHTML = '';
+                    const textarea = document.createElement('textarea');
+                    const editorId = `editor-for-${path.replace(/[.\[\]]/g, '-')}`;
+                    textarea.id = editorId;
+                    textarea.value = content;
+                    target.appendChild(textarea);
+                    const newEditorConfig = { 
+                        selector: `#${editorId}`,
+                        plugins: 'lists link image code help wordcount autoresize equationeditor',
+                        toolbar: 'undo redo | blocks | bold italic equationeditor | alignleft aligncenter alignright | bullist numlist | code | help',
+                        menubar: true, min_height: 150, autoresize_bottom_margin: 24, 
+                        external_plugins: { 'equationeditor': 'https://tinymce-equation-editor.netlify.app/equation-editor/plugin.min.js' },
+                        extended_valid_elements: 'math[*],mstyle[*],mrow[*],mi[*],mn[*],mo[*],msup[*],msub[*],mfrac[*],msqrt[*],mtable[*],mtr[*],mtd[*]',
+                        content_css: 'https://cdn.jsdelivr.net/npm/mathlive/dist/mathlive-static.css',
+                        setup: (editor) => { 
+                            editor.on('init', () => editor.focus()); 
+                            activeEditor = { editor, container: target, path, isList, source }; 
+                        } 
+                    };
+                    if (isList) { newEditorConfig.menubar = false; newEditorConfig.toolbar = 'undo redo | bold italic equationeditor | bullist numlist | code | help'; }
+                    tinymce.init(newEditorConfig);
+                }
+                
+                function updateSharedData(source, path, value) {
+                    const sourceData = source === 'tig' ? currentTigData : currentSrbData;
+                    const targetData = source === 'srb' ? currentTigData : currentSrbData;
+                    setNestedProperty(sourceData, path, value);
+                    const pathParts = path.match(/[^.\[\]]+/g) || [];
+                    const featurePath = pathParts.slice(0, 2).join('.');
+                    const changedFeature = getNestedProperty(sourceData, featurePath);
+                    if (!changedFeature || !changedFeature.uuid) return;
+                    const findAndSync = (items, basePath) => {
+                        if(!items) return false;
+                        const targetIndex = items.findIndex(f => f && f.uuid === changedFeature.uuid);
+                        if (targetIndex !== -1) {
+                            const propertySubPath = pathParts.slice(2).join('.');
+                            const targetPath = `${basePath}[${targetIndex}].${propertySubPath}`;
+                            setNestedProperty(targetData, targetPath, value);
+                            return true;
+                        }
+                        return false;
+                    };
+                    if (findAndSync(targetData.lesson_overview_items, 'lesson_overview_items')) return;
+                    if (targetData.lesson_content_sessions) {
+                         targetData.lesson_content_sessions.forEach((session, sIndex) => { if(findAndSync(session.features, `lesson_content_sessions[${sIndex}].features`)) return; });
+                    }
+                    if (targetData.lesson_support_sessions) {
+                         targetData.lesson_support_sessions.forEach((session, sIndex) => { if(findAndSync(session.support_items, `lesson_support_sessions[${sIndex}].support_items`)) return; });
+                    }
+                }
+                
+                function syncAndRefreshViews(source, path) {
+                    const pathParts = path.match(/[^.\[\]]+/g) || [];
+                    const featurePath = pathParts.slice(0, 2).join('.');
+                    const sourceFeature = getNestedProperty(source === 'tig' ? currentTigData : currentSrbData, featurePath);
+                    if (!sourceFeature || !sourceFeature.uuid) return;
+                    
+                    const sourceCard = mainContent.querySelector(`.editor-column[data-source="${source}"] [data-uuid="${sourceFeature.uuid}"]`);
+                    if (sourceCard && sourceCard.querySelector('.feature-content')) {
+                        sourceCard.querySelector('.feature-content').innerHTML = renderFeatureContent(sourceFeature, sourceCard.getAttribute('data-path'), source);
+                    }
+                
+                    const targetSource = source === 'tig' ? 'srb' : 'tig';
+                    const targetCard = mainContent.querySelector(`.editor-column[data-source="${targetSource}"] [data-uuid="${sourceFeature.uuid}"]`);
+                    if(targetCard) {
+                        const targetPath = targetCard.getAttribute('data-path');
+                        const targetFeature = getNestedProperty(targetSource === 'tig' ? currentTigData : currentSrbData, targetPath);
+                        if (targetFeature && targetCard.querySelector('.feature-content')) {
+                           targetCard.querySelector('.feature-content').innerHTML = renderFeatureContent(targetFeature, targetPath, targetSource);
+                        }
+                    }
+                }
+
+                function handleInputChange(e) {
+                    const target = e.target;
+                    const path = target.getAttribute('data-path');
+                    const source = target.closest('.editor-column').getAttribute('data-source');
+                    if (path && source) {
+                        let value;
+                        if (target.type === 'checkbox') value = target.checked;
+                        else if (target.tagName === 'SELECT') value = isNaN(parseInt(target.value)) ? target.value : parseInt(target.value);
+                        else value = target.value;
+                        updateSharedData(source, path, value);
+                        syncAndRefreshViews(source, path);
+                    }
+                }
+                
+                function renderSideBySideEditor() {
+                    destroyActiveEditor(false);
+                    mainContent.innerHTML = `
+                        <div class="editor-column" data-source="srb">
+                            <div class="column-header">
+                                <div class="srb-column-header"><span>Student View <small>(SRB)</small></span><button class="add-break-btn">Add Slide Break</button></div>
+                                <div class="column-header-controls">
+                                    <button class="view-toggle-btn ${srbViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
+                                    <button class="view-toggle-btn ${srbViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${srbViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
+                                </div>
+                            </div>
+                            <div class="column-content">${renderColumnContent('srb')}</div>
+                        </div>
+                        <div class="editor-column" data-source="tig">
+                            <div class="column-header">
+                                <span>Teacher View <small>(TIG)</small></span>
+                                <div class="column-header-controls">
+                                    <button class="view-toggle-btn ${tigViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
+                                    <button class="view-toggle-btn ${tigViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${tigViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
+                                </div>
+                            </div>
+                            <div class="column-content">${renderColumnContent('tig')}</div>
+                        </div>`;
+                    initializeSortable();
+                    mainContent.querySelectorAll('.source-view-textarea').forEach(area => area.addEventListener('input', handleSourceEdit));
+                }
+
+                function initializeSortable() {
+                    mainContent.querySelectorAll('.sortable-list').forEach(list => {
+                        new Sortable(list, {
+                            handle: '.drag-handle',
+                            animation: 150,
+                            onEnd: (evt) => {
+                                const path = evt.from.getAttribute('data-path');
+                                const source = evt.from.closest('.editor-column').getAttribute('data-source');
+                                const data = source === 'srb' ? currentSrbData : currentTigData;
+                                const featureArray = getNestedProperty(data, path);
+                                if (Array.isArray(featureArray)) {
+                                    const [movedItem] = featureArray.splice(evt.oldIndex, 1);
+                                    featureArray.splice(evt.newIndex, 0, movedItem);
+                                    renderSideBySideEditor();
+                                }
+                            }
+                        });
+                    });
+                }
+
+                function renderColumnContent(source) {
+                    const data = source === 'srb' ? currentSrbData : currentTigData;
+                    const mode = source === 'srb' ? srbViewMode : tigViewMode;
+
+                    if (mode === 'source') {
+                        return `<textarea class="source-view-textarea">${JSON.stringify(data, null, 2)}</textarea>`;
+                    }
+                    if (mode === 'pdf') {
+                        if (!currentLessonInfo) return '<p class="content-placeholder">Lesson info not loaded.</p>';
+                        const pdfPath = source === 'srb' ? currentLessonInfo.srb_pdf_path : currentLessonInfo.tig_pdf_path;
+                        return `<iframe class="pdf-view-iframe" src="${pdfPath}"></iframe>`;
+                    }
+                    
+                    if (!data) return '<div class="loader">Data not loaded.</div>';
+                    let overviewHtml = renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source, true);
+                    let mainContentHtml = '';
+                    if (source === 'srb' && data.lesson_content_sessions) { mainContentHtml = renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source, true); }
+                    else if (source === 'tig' && data.lesson_support_sessions) {
+                        (data.lesson_support_sessions || []).forEach((session, sIndex) => {
+                            mainContentHtml += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
+                            const allSrbItems = (currentSrbData.lesson_overview_items || []).concat(currentSrbData.lesson_content_sessions[0]?.features || []);
+                            const srbBreakUUIDs = new Set((allSrbItems.filter(f => f.feature_type === 'slide_break')).map(b => b.uuid));
+                            
+                            const combinedItems = [ ...session.support_items ];
+                            let srbPointer = 0;
+                            for(let i=0; i<combinedItems.length; i++){
+                                const tigItem = combinedItems[i];
+                                if(tigItem.linked_student_uuid){
+                                    while(srbPointer < allSrbItems.length && allSrbItems[srbPointer].uuid !== tigItem.linked_student_uuid){
+                                        if(srbBreakUUIDs.has(allSrbItems[srbPointer].uuid)){
+                                            combinedItems.splice(i, 0, allSrbItems[srbPointer]);
+                                            i++;
+                                        }
+                                        srbPointer++;
+                                    }
+                                }
+                            }
+                            
+                            const blocks = combinedItems.reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
+                            const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
+                            blockOrder.forEach(blockName => {
+                                if (blocks[blockName]) {
+                                    mainContentHtml += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
+                                    blocks[blockName].forEach(feature => { 
+                                        let path = `slide_break_${feature.uuid}`;
+                                        if (feature.feature_type !== 'slide_break') {
+                                            const originalIndex = session.support_items.indexOf(feature);
+                                            path = `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`;
+                                        }
+                                        mainContentHtml += renderFeature(feature, path, source); 
+                                    });
+                                    mainContentHtml += `</div></div>`;
+                                }
+                            });
+                        });
+                    }
+                    return overviewHtml + mainContentHtml;
+                }
+
+                function renderSection(title, items, path, source, isSortable = false) {
+                    let html = `<h2 class="section-header">${title}</h2>`;
+                    let content = '';
+                    (items || []).forEach((feature, index) => {
+                        content += renderFeature(feature, `${path}[${index}]`, source);
+                    });
+                    if (isSortable) {
+                        return html + `<div class="sortable-list" data-path="${path}">${content}</div>`;
+                    }
+                    return html + content;
+                }
+
+                function renderFeature(feature, path, source) {
+                    if (!feature || !feature.feature_data) return ''; 
+                    if (feature.feature_type === 'slide_break') {
+                        if (source === 'srb') {
+                            return `<div class="slide-break-feature" data-path="${path}" data-uuid="${feature.uuid}">
+                                        <span class="drag-handle">☰</span>
+                                        <span>SLIDE BREAK</span>
+                                        <button class="delete-break-btn" data-path="${path}" title="Delete Slide Break">X</button>
+                                    </div>`;
+                        } else { return `<div class="slide-break-indicator" data-uuid="${feature.uuid}"></div>`; }
+                    }
+                    if (feature.feature_data.data_type === 'static_header') {
+                         return `<div class="static-header-card" data-path="${path}" data-uuid="${feature.uuid}">
+                                    ${feature.feature_title}
+                                    ${feature.feature_data.mode ? `<span class="feature-type-badge">${feature.feature_data.mode}</span>` : ''}
+                                </div>`;
+                    }
+                    if (feature.feature_data.data_type === 'activity_header') {
+                        let activityNumberHtml = '';
+                        if (feature.feature_data.hasOwnProperty('activity_number')) {
+                            let selectHtml = `<select data-path="${path}.feature_data.activity_number">`;
+                            for(let i=1; i<=8; i++) { selectHtml += `<option value="${i}" ${feature.feature_data.activity_number === i ? 'selected' : ''}>${i}</option>`; }
+                            selectHtml += `</select>`;
+                            activityNumberHtml = `Activity ${selectHtml}`;
+                        }
+                        return `<div class="static-header-card" data-path="${path}" data-uuid="${feature.uuid}">${activityNumberHtml} <input type="text" value="${feature.feature_title}" data-path="${path}.feature_title"/></div>`;
+                    }
+                    
+                    const contentHtml = renderFeatureContent(feature, path, source);
+                    return `<div class="feature-card" data-path="${path}" data-uuid="${feature.uuid}">
+                                <div class="feature-header"><h3>${feature.feature_title}</h3><span class="feature-type-badge">${feature.feature_type}</span></div>
+                                ${contentHtml ? `<div class="feature-content">${contentHtml}</div>` : ''}
+                            </div>`;
+                }
+
+                function renderFeatureContent(feature, path, source) {
+                   const data = source === 'srb' ? currentSrbData : currentTigData;
+                   const dataType = feature.feature_data.data_type;
+                   const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
+                       let content = getNestedProperty(data, contentPath);
+                       if (isList) { content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; }
+                       return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
+                   };
+                   
+                   switch (dataType) {
+                        case 'list': 
+                        case 'rich_text_list':
+                            return createEditableDiv(path + '.feature_data.items', true, (feature.feature_data.is_numbered ? 'ol' : 'ul'));
+                        
+                        case 'rich_text':
+                            if (feature.feature_type === 'learning_prompt') {
+                                const question = getNestedProperty(data, path + '.feature_data.prompt_question');
+                                const answer = getNestedProperty(data, path + '.feature_data.prompt_answer');
+                                if (source === 'tig') {
+                                    return `<div class="form-field"><label>Prompt Question (from SRB)</label><div class="read-only-content">${question || ''}</div></div>
+                                            <div class="form-field"><label>Prompt Answer</label>${createEditableDiv(path + '.feature_data.prompt_answer')}</div>`;
+                                } else {
+                                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(path + '.feature_data.prompt_question')}</div>
+                                            <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
+                                }
+                            } else { return createEditableDiv(path + '.feature_data.content'); }
+
+                        case 'prompt': 
+                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div>
+                                    <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
+                        
+                        case 'qti_assessment_item':
+                            const itemData = feature.feature_data;
+                            let html = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
+                            (itemData.item_body.interactions || []).forEach((interaction, i) => {
+                                const respDeclIndex = (itemData.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
+                                if (respDeclIndex > -1) {
+                                    const respDecl = itemData.response_declarations[respDeclIndex];
+                                    const isSample = respDecl.is_sample_answer === true;
+                                    html += `<div class="qti-interaction">
+                                                <div class="form-field"><label>Interaction Prompt</label><input type="text" value="${interaction.prompt}" data-path="${path}.feature_data.item_body.interactions[${i}].prompt" /></div>
+                                                <div class="form-field qti-answer">
+                                                    <div class="answer-header">
+                                                        <label>Correct Response</label>
+                                                        <div class="sample-answer-toggle">
+                                                            <label for="sample-toggle-${path}-${i}">Sample Answer?</label>
+                                                            <input type="checkbox" id="sample-toggle-${path}-${i}" data-path="${path}.feature_data.response_declarations[${respDeclIndex}].is_sample_answer" ${isSample ? 'checked' : ''} />
+                                                        </div>
+                                                    </div>
+                                                    ${createEditableDiv(`${path}.feature_data.response_declarations[${respDeclIndex}].correct_response`)}
+                                                </div>
+                                            </div>`;
+                                }
+                            });
+                            if (itemData.ancillary_content) {
+                                if (itemData.ancillary_content.think_about) { html += `<div class="form-field"><label>Think About</label>${createEditableDiv(`${path}.feature_data.ancillary_content.think_about`)}</div>`; }
+                                if (itemData.ancillary_content.ask_yourself) { html += `<div class="form-field"><label>Ask Yourself</label>${createEditableDiv(`${path}.feature_data.ancillary_content.ask_yourself`)}</div>`; }
+                                if (itemData.ancillary_content.graphic) { const graphic = itemData.ancillary_content.graphic; html += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
+                            }
+                            return html;
+
+                        case 'problem': 
+                             const probData = feature.feature_data;
+                             let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
+                             if (probData.answer) {
+                                 const isSampleAnswer = probData.answer.is_sample_answer === true;
+                                 probHtml += `<div class="form-field" style="border-left: 4px solid magenta; padding-left: 1rem;">
+                                                <div class="answer-header">
+                                                    <label>Answer</label>
+                                                    ${ 'is_sample_answer' in probData.answer ? `<div class="sample-answer-toggle">
+                                                        <label for="sample-toggle-${path}">Sample Answer?</label>
+                                                        <input type="checkbox" id="sample-toggle-${path}" data-path="${path}.feature_data.answer.is_sample_answer" ${isSampleAnswer ? 'checked' : ''} />
+                                                    </div>` : ''}
+                                                </div>
+                                                ${createEditableDiv(`${path}.feature_data.answer.content`)}
+                                            </div>`;
+                             }
+                             return probHtml;
+
+                        case 'session_list': 
+                            let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Strategies</th><th>Duration</th><th>Mode</th></tr></thead><tbody>`; 
+                            tableHtml += (feature.feature_data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${(item.instructional_strategies || []).join(', ')}</td><td>${item.duration_minutes} min</td><td>${item.mode}</td></tr>`).join(''); 
+                            return tableHtml += `</tbody></table>`;
+                        
+                        case 'intro_with_list':
+                            const introListTag = feature.feature_data.is_numbered ? 'ol' : 'ul'; 
+                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><div class="form-field"><label>Items</label>${createEditableDiv(`${path}.feature_data.items`, true, introListTag)}</div>`;
+                        
+                        case 'intro_with_structured_list': 
+                            return `<div class="form-field"><label>Introduction</label>${createEditableDiv(`${path}.feature_data.introduction`)}</div><label>Items</label>${(feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Title</label><input type="text" value="${item.title}" data-path="${path}.feature_data.items[${i}].title" /></div><div class="form-field"><label>Description</label><textarea rows="3" data-path="${path}.feature_data.items[${i}].description">${item.description}</textarea></div></div>`).join('')}`;
+
+                        case 'detailed_activity_facilitation': 
+                            const facData = feature.feature_data; let promptHtml = ''; 
+                            const modeOptions = ['presentation', 'book', 'group_work', 'independent'];
+                            let modeDropdown = `<select data-path="${path}.feature_data.mode">`;
+                            modeOptions.forEach(opt => { modeDropdown += `<option value="${opt}" ${facData.mode === opt ? 'selected' : ''}>${opt}</option>`; });
+                            modeDropdown += `</select>`;
+                            if (facData.activate_prompt) {
+                                promptHtml = `<div class="structured-list-item">
+                                                <div class="form-field"><label>Activate Prompt Title (from SRB)</label><div class="read-only-content">${facData.activate_prompt.title}</div></div>
+                                                <div class="form-field"><label>Activate Prompt Text (from SRB)</label><div class="read-only-content">${facData.activate_prompt.prompt_text}</div></div>
+                                            </div>`;
+                            } 
+                            return `<div class="form-field"><label>Purpose</label><input type="text" value="${facData.purpose || ''}" data-path="${path}.feature_data.purpose" /></div>
+                                    <div class="form-field"><label>Mode</label>${modeDropdown}</div>
+                                    ${promptHtml}
+                                    <div class="form-field"><label>Steps</label>${createEditableDiv(`${path}.feature_data.steps`, true, 'ul')}</div>`;
+                        
+                        case 'differentiation_strategy': 
+                            return `<div class="form-field"><label>Title</label><input type="text" value="${feature.feature_data.title || ''}" data-path="${path}.feature_data.title" /></div><div class="form-field"><label>Text</label>${createEditableDiv(`${path}.feature_data.text`)}</div>`;
+                        
+                        case 'ongoing_assessment': 
+                            const assessData = feature.feature_data;
+                            return `<div class="form-field"><label>Introduction</label><input type="text" value="${assessData.introduction_text || ''}" data-path="${path}.feature_data.introduction_text" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.questions`, true, 'ul')}</div><div class="form-field"><label>Notes</label>${createEditableDiv(`${path}.feature_data.notes`)}</div>`;
+                        
+                        case 'question_set_list': 
+                            return (feature.feature_data.items || []).map((item, i) => `<div class="structured-list-item"><div class="form-field"><label>Student Page #</label><input type="text" value="${item.student_page_number}" data-path="${path}.feature_data.items[${i}].student_page_number" /></div><div class="form-field"><label>Item #s</label>${createEditableDiv(`${path}.feature_data.items[${i}].item_numbers`)}</div><div class="form-field"><label>Question Type</label><input type="text" value="${item.question_type}" data-path="${path}.feature_data.items[${i}].question_type" /></div><div class="form-field"><label>Questions</label>${createEditableDiv(`${path}.feature_data.items[${i}].questions`, true, 'ul')}</div></div>`).join('');
+                        
+                        default: return ``;
+                   }
+                }
+
+                function saveChanges() { console.log("SRB Data:", JSON.stringify(currentSrbData, null, 2)); console.log("TIG Data:", JSON.stringify(currentTigData, null, 2)); alert("Data for both files saved to console."); }
+                
+                init();
+            }
+            bootstrap();
+        });
+    </script>
+</body>
+</html>
