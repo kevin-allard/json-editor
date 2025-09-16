@@ -213,8 +213,12 @@
         .metadata-display-list { font-size: 14px; line-height: 1.6; }
         .metadata-display-list dt { font-weight: 500; }
         .metadata-display-list dd { margin-left: 16px; margin-bottom: 8px; color: var(--text-color-secondary); }
-
         .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
+        .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
+        .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
+        .block-group { border: 2px solid var(--border-color); border-radius: 8px; margin-bottom: 24px; }
+        .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--text-color-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--border-color); border-radius: 8px 8px 0 0; }
+        .block-group-content { padding: 8px 24px 24px 24px; }
         .qti-interaction { border-left: 4px solid var(--primary-color); padding-left: 16px; margin-top: 16px; }
         .qti-answer { border-left: 4px solid #9c27b0; padding-left: 16px; }
         .graphic-placeholder { border: 2px dashed var(--border-color); padding: 16px; text-align: center; color: var(--text-color-secondary); border-radius: 4px; }
@@ -273,16 +277,18 @@
 <script id="main-script">
 document.addEventListener('DOMContentLoaded', () => {
     
-    const APP_VERSION = "rc1.beta.0.31";
+    const APP_VERSION = "rc1.beta.0.29";
 
     // --- STATE MANAGEMENT ---
     let srbData = null;
+    let tigData = null;
     let selectedFeatureUuid = null;
-    let documentState = { // For holding Lenses-like properties for ClearMath
+    let documentState = { 
         linkedActivityIds: [],
         availableSupportLevels: ['core', 'light', 'moderate', 'intensive', 'light-multilingual', 'moderate-multilingual', 'intensive-multilingual']
     };
     let activityLookup = {};
+    let activeEditor = null;
     
     // --- UI ELEMENTS ---
     const versionDisplay = document.getElementById('version-display');
@@ -291,13 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const propertiesContent = document.getElementById('properties-content');
 
     // --- UTILITY FUNCTIONS ---
-    function truncateText(text, length = 100) {
-        if (!text || typeof text !== 'string') return '';
-        const strippedText = text.replace(/<[^>]*>?/gm, ''); // Remove HTML tags for preview
-        if (strippedText.length <= length) return strippedText;
-        return strippedText.substring(0, length) + '...';
-    }
-    
+    function getNestedProperty(obj, path) { return path.split(/[.\[\]]+/).filter(Boolean).reduce((res, key) => (res !== null && res !== undefined) ? res[key] : res, obj); }
+    function setNestedProperty(obj, path, value) { const keys = path.split(/[.\[\]]+/).filter(Boolean); const lastKey = keys.pop(); const lastObj = keys.reduce((res, key) => res[key] = res[key] || {}, obj); lastObj[lastKey] = value; }
+
     // --- RENDER FUNCTIONS ---
     function renderDocProperties() {
         if (!srbData) {
@@ -388,28 +390,28 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
         
         html += `<h2 class="section-header">Lesson Overview</h2>`;
-        (srbData.lesson_overview_items || []).forEach(feature => {
-            html += renderFeatureCard(feature);
+        (srbData.lesson_overview_items || []).forEach((feature, index) => {
+            html += renderFeatureCard(feature, `lesson_overview_items[${index}]`);
         });
 
         if (srbData.lesson_content_sessions && srbData.lesson_content_sessions[0]) {
             html += `<h2 class="section-header">Lesson Content</h2>`;
-            (srbData.lesson_content_sessions[0].features || []).forEach(feature => {
-                html += renderFeatureCard(feature);
+            (srbData.lesson_content_sessions[0].features || []).forEach((feature, index) => {
+                html += renderFeatureCard(feature, `lesson_content_sessions[0].features[${index}]`);
             });
         }
         
         canvas.innerHTML = html;
     }
     
-    function renderFeatureCard(feature) {
+    function renderFeatureCard(feature, path) {
         if (!feature || !feature.feature_data) return '';
         
         const isSelected = feature.uuid === selectedFeatureUuid;
-        const contentHtml = renderFeatureContent(feature, 'preview');
+        const contentHtml = renderFeatureContent(feature, path);
 
         return `
-            <div class="feature-card ${isSelected ? 'selected' : ''}" data-uuid="${feature.uuid}">
+            <div class="feature-card ${isSelected ? 'selected' : ''}" data-uuid="${feature.uuid}" data-path="${path}">
                 <div class="feature-header">
                     <h3>${feature.feature_title}</h3>
                     <span class="feature-type-badge">${feature.feature_type}</span>
@@ -451,56 +453,79 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function renderFeatureContent(feature, mode = 'full') {
+    function renderFeatureContent(feature, path) {
         const data = feature.feature_data;
         const dataType = data.data_type;
+
+        const createEditableDiv = (contentPath, isList = false, listTag = 'ul') => {
+           let content = getNestedProperty(srbData, contentPath);
+           if (isList) { content = `<${listTag}>${(content || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`; }
+           return `<div class="editable-content" data-path="${contentPath}" data-type="${isList ? 'list' : 'single'}">${content || ''}</div>`;
+        };
 
         switch (dataType) {
             case 'list': 
             case 'rich_text_list':
-                const listTag = data.is_numbered ? 'ol' : 'ul';
-                return `<${listTag}>${(data.items || []).map(item => `<li>${item}</li>`).join('')}</${listTag}>`;
+                return createEditableDiv(path + '.feature_data.items', true, (data.is_numbered ? 'ol' : 'ul'));
             
             case 'rich_text':
                 if (feature.feature_type === 'learning_prompt') {
-                    return `<strong>${data.prompt_question}</strong>`;
+                    const answer = getNestedProperty(tigData, path + '.feature_data.prompt_answer');
+                    return `<div class="form-field"><label>Prompt Question</label>${createEditableDiv(path + '.feature_data.prompt_question')}</div>
+                            <div class="form-field"><label>Teacher's Answer (Read-only)</label><div class="read-only-content">${answer || ''}</div></div>`;
                 }
-                return data.content || '';
+                return createEditableDiv(path + '.feature_data.content');
 
             case 'prompt': 
-                return `<strong>${data.title || ''}</strong><p>${data.text || ''}</p>`;
+                return `<div class="form-field"><label>Title</label><input type="text" value="${data.title || ''}" data-path="${path}.feature_data.title" /></div>
+                        <div class="form-field"><label>Text</label>${createEditableDiv(path + '.feature_data.text')}</div>`;
             
             case 'qti_assessment_item':
-                let qtiHtml = data.item_body.stem;
-                (data.item_body.interactions || []).forEach(interaction => {
-                    qtiHtml += `<div class="qti-interaction"><label>${interaction.prompt}</label><div class="read-only-content">(Response Area)</div></div>`;
+                let qtiHtml = `<div class="form-field"><label>Item Stem</label>${createEditableDiv(path + '.feature_data.item_body.stem')}</div>`;
+                (data.item_body.interactions || []).forEach((interaction, i) => {
+                    const respDeclIndex = (data.response_declarations || []).findIndex(rd => rd.identifier === interaction.response_identifier);
+                    if (respDeclIndex > -1) {
+                        const respDecl = data.response_declarations[respDeclIndex];
+                        const isSample = respDecl.is_sample_answer === true;
+                        qtiHtml += `<div class="qti-interaction">
+                                    <div class="form-field"><label>Interaction Prompt</label><input type="text" value="${interaction.prompt}" data-path="${path}.feature_data.item_body.interactions[${i}].prompt" /></div>
+                                    <div class="form-field qti-answer">
+                                        <div class="answer-header"><label>Correct Response</label>
+                                            <div class="sample-answer-toggle">
+                                                <label for="sample-toggle-${path}-${i}">Sample Answer?</label>
+                                                <input type="checkbox" id="sample-toggle-${path}-${i}" data-path="${path}.feature_data.response_declarations[${respDeclIndex}].is_sample_answer" ${isSample ? 'checked' : ''} />
+                                            </div>
+                                        </div>
+                                        ${createEditableDiv(`${path}.feature_data.response_declarations[${respDeclIndex}].correct_response`)}
+                                    </div>
+                                </div>`;
+                    }
                 });
+                if (data.ancillary_content) {
+                    if (data.ancillary_content.graphic) { const graphic = data.ancillary_content.graphic; qtiHtml += `<div class="form-field"><label>Graphic</label><div class="graphic-placeholder"><strong>Image ID:</strong> ${graphic.image_id}<br><strong>Alt Text:</strong> ${graphic.alt_text}</div></div>`; }
+                }
                 return qtiHtml;
 
             case 'problem': 
-                 return data.content || '';
+                 let probHtml = `<div class="form-field"><label>Content</label>${createEditableDiv(`${path}.feature_data.content`)}</div>`;
+                 if (data.answer) {
+                     const isSampleAnswer = data.answer.is_sample_answer === true;
+                     probHtml += `<div class="form-field qti-answer">
+                                    <div class="answer-header"><label>Answer</label>
+                                        ${ 'is_sample_answer' in data.answer ? `<div class="sample-answer-toggle">
+                                            <label for="sample-toggle-${path}">Sample Answer?</label>
+                                            <input type="checkbox" id="sample-toggle-${path}" data-path="${path}.feature_data.answer.is_sample_answer" ${isSampleAnswer ? 'checked' : ''} />
+                                        </div>` : ''}
+                                    </div>
+                                    ${createEditableDiv(`${path}.feature_data.answer.content`)}
+                                </div>`;
+                 }
+                 return probHtml;
 
-            case 'session_list': 
-                let tableHtml = `<table><thead><tr><th>Session</th><th>Block</th><th>Title</th><th>Duration</th></tr></thead><tbody>`; 
-                tableHtml += (data.items || []).map(item => `<tr><td>${item.session}</td><td>${item.block}</td><td>${item.title}</td><td>${item.duration_minutes} min</td></tr>`).join(''); 
-                return tableHtml += `</tbody></table>`;
-            
-            case 'intro_with_list':
-                const introListTag = data.is_numbered ? 'ol' : 'ul'; 
-                return `${data.introduction || ''}<${introListTag}>${(data.items || []).map(item => `<li>${item}</li>`).join('')}</${introListTag}>`;
-            
-            case 'intro_with_structured_list': 
-                let structuredHtml = data.introduction || '';
-                structuredHtml += (data.items || []).map(item => `<div class="structured-list-item"><strong>${item.title}</strong><p>${item.description}</p></div>`).join('');
-                return structuredHtml;
-
-            case 'static_header':
-            case 'activity_header':
-                return ``; // Content is in the title, no body needed for card.
-            
-            default: return `<em>Preview for data type "${dataType}" not implemented.</em>`;
+            default: return `<div class="read-only-content"><pre>${JSON.stringify(feature.feature_data, null, 2)}</pre></div>`;
         }
     }
+
 
     function fullRender() {
         renderDocProperties();
@@ -524,15 +549,20 @@ document.addEventListener('DOMContentLoaded', () => {
             header.parentElement.classList.toggle('open');
         }
     });
-
+    
     // --- INITIALIZATION ---
     async function initializeApp() {
         versionDisplay.textContent = APP_VERSION;
         try {
-            // For this version, we will hardcode loading the single SRB file.
-            const response = await fetch('data/CA_SM5e_A01_SRB_M01_T01_L01.json');
-            if (!response.ok) throw new Error("Could not load SRB JSON file.");
-            srbData = await response.json();
+            const [srbResponse, tigResponse] = await Promise.all([
+                fetch('data/CA_SM5e_A01_SRB_M01_T01_L01.json'),
+                fetch('data/CA_SM5e_A01_TIG_M01_T01_L01.json')
+            ]);
+            if (!srbResponse.ok) throw new Error("Could not load SRB JSON file.");
+            if (!tigResponse.ok) throw new Error("Could not load TIG JSON file.");
+
+            srbData = await srbResponse.json();
+            tigData = await tigResponse.json();
             
             fullRender();
         } catch (error) {
