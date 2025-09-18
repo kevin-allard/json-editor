@@ -1,4 +1,4 @@
-<!-- Editor Version: rc1.beta.0.59 -->
+<!-- Editor Version: rc1.beta.0.61 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,16 +23,6 @@
         .editor-wrapper { display: flex; flex-direction: column; height: 100vh; }
         .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
         #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
-        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .header-brand img { height: 32px; }
-        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
-        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-        .user-profile { display: flex; align-items: center; gap: 12px; }
-        .user-profile .user-name { font-weight: 500; }
-        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
-        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
-        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
         .editor-column { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
         .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
         .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
@@ -43,6 +33,16 @@
         .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
         .source-view-textarea.error { border-color: #f44336; }
         .pdf-view-iframe { width: 100%; height: 100%; border: none; }
+        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .header-brand img { height: 32px; }
+        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
+        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
+        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-profile .user-name { font-weight: 500; }
+        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
+        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
+        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
         .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
         .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
         .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
@@ -96,7 +96,7 @@
                 <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.59</span>
+                <span class="version-tag">v. rc1.beta.0.60</span>
                 <button id="save-button" class="save-button">Save Changes</button>
                 <div class="user-profile">
                     <span class="user-name">K. Allard</span>
@@ -428,26 +428,49 @@
                         return `<textarea class="source-view-textarea">${JSON.stringify(data, null, 2)}</textarea>`;
                     }
                     if (mode === 'pdf') {
-                        if (!currentLessonInfo) return '<p>Lesson info not loaded.</p>';
-                        const jsonPath = source === 'srb' ? currentLessonInfo.srb_path : currentLessonInfo.tig_path;
-                        const pdfPath = jsonPath.replace(/\.json$/, source === 'srb' ? ' (SE).pdf' : ' (TIG).pdf');
+                        if (!currentLessonInfo) return '<p class="content-placeholder">Lesson info not loaded.</p>';
+                        const pdfPath = source === 'srb' ? currentLessonInfo.srb_pdf_path : currentLessonInfo.tig_pdf_path;
                         return `<iframe class="pdf-view-iframe" src="${pdfPath}"></iframe>`;
                     }
                     
                     if (!data) return '<div class="loader">Data not loaded.</div>';
                     let overviewHtml = renderSection("Lesson Overview", data.lesson_overview_items, `lesson_overview_items`, source, true);
                     let mainContentHtml = '';
-                    if (source === 'srb' && data.lesson_content_sessions) {
-                        mainContentHtml = renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source, true);
-                    } else if (source === 'tig' && data.lesson_support_sessions) {
+                    if (source === 'srb' && data.lesson_content_sessions) { mainContentHtml = renderSection("Lesson Content", data.lesson_content_sessions[0].features, `lesson_content_sessions[0].features`, source, true); }
+                    else if (source === 'tig' && data.lesson_support_sessions) {
                         (data.lesson_support_sessions || []).forEach((session, sIndex) => {
                             mainContentHtml += `<h2 class="section-header">Lesson Support: Session ${session.session}</h2>`;
-                            const blocks = (session.support_items || []).reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
+                            const allSrbItems = (currentSrbData.lesson_overview_items || []).concat(currentSrbData.lesson_content_sessions[0]?.features || []);
+                            const srbBreakUUIDs = new Set((allSrbItems.filter(f => f.feature_type === 'slide_break')).map(b => b.uuid));
+                            
+                            const combinedItems = [ ...session.support_items ];
+                            let srbPointer = 0;
+                            for(let i=0; i<combinedItems.length; i++){
+                                const tigItem = combinedItems[i];
+                                if(tigItem.linked_student_uuid){
+                                    while(srbPointer < allSrbItems.length && allSrbItems[srbPointer].uuid !== tigItem.linked_student_uuid){
+                                        if(srbBreakUUIDs.has(allSrbItems[srbPointer].uuid)){
+                                            combinedItems.splice(i, 0, allSrbItems[srbPointer]);
+                                            i++;
+                                        }
+                                        srbPointer++;
+                                    }
+                                }
+                            }
+                            
+                            const blocks = combinedItems.reduce((acc, item) => { const blockName = item.block || 'General'; if (!acc[blockName]) acc[blockName] = []; acc[blockName].push(item); return acc; }, {});
                             const blockOrder = ['Activate', 'Explore and Develop', 'Reflect', 'General'];
                             blockOrder.forEach(blockName => {
                                 if (blocks[blockName]) {
                                     mainContentHtml += `<div class="block-group"><div class="block-group-header">${blockName}</div><div class="block-group-content">`;
-                                    blocks[blockName].forEach(feature => { const originalIndex = session.support_items.indexOf(feature); mainContentHtml += renderFeature(feature, `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`, source); });
+                                    blocks[blockName].forEach(feature => { 
+                                        let path = `slide_break_${feature.uuid}`;
+                                        if (feature.feature_type !== 'slide_break') {
+                                            const originalIndex = session.support_items.indexOf(feature);
+                                            path = `lesson_support_sessions[${sIndex}].support_items[${originalIndex}]`;
+                                        }
+                                        mainContentHtml += renderFeature(feature, path, source); 
+                                    });
                                     mainContentHtml += `</div></div>`;
                                 }
                             });
