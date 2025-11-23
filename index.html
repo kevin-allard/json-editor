@@ -14,95 +14,107 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         :root {
-            --md-primary-color: #3f51b5; --md-bg-main: #f5f5f5; --md-bg-card: #ffffff;
-            --md-border-color: #e0e0e0; --md-text-primary: #212121; --md-text-secondary: #757575;
-            --header-height: 90px;
+            /* Material 3 Color Palette (Blue Tonal Spot) */
+            --md-sys-color-primary: #4355B9;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #DEE0FF;
+            --md-sys-color-on-primary-container: #00105C;
+            --md-sys-color-secondary: #5B5D72;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-surface: #FBF8FF;
+            --md-sys-color-surface-container: #F4EEF9;
+            --md-sys-color-on-surface: #1B1B21;
+            --md-sys-color-on-surface-variant: #46464F;
+            --md-sys-color-outline: #777680;
+            --md-sys-color-outline-variant: #C7C5D0;
+            --md-sys-color-error: #BA1A1A;
+
+            /* Shape */
+            --md-sys-shape-corner-extra-small: 4px;
+            --md-sys-shape-corner-small: 8px;
+            --md-sys-shape-corner-medium: 12px;
+            --md-sys-shape-corner-large: 16px;
+            --md-sys-shape-corner-full: 999px;
+
+            /* Layout */
+            --header-height: 80px;
         }
         html, body { height: 100%; margin: 0; overflow: hidden; }
-        body { font-family: 'Roboto', sans-serif; background-color: var(--md-bg-main); color: var(--md-text-primary); }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); }
         .editor-wrapper { display: flex; flex-direction: column; height: 100vh; }
-        .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; align-items: center; gap: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background-color: var(--md-bg-card); }
+        .editor-header { height: var(--header-height); padding: 0 24px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-shrink: 0; background-color: var(--md-sys-color-surface); border-bottom: 1px solid var(--md-sys-color-outline-variant); }
         #editor-main-content { flex-grow: 1; display: flex; gap: 24px; overflow: hidden; padding: 24px; box-sizing: border-box; }
         .editor-column { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--md-primary-color); position: sticky; top: -1px; background: var(--md-bg-main); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
-        .column-header small { font-size: 14px; color: var(--md-text-secondary); font-weight: 400; }
+        .column-header { display: flex; justify-content: space-between; align-items: center; font-size: 22px; font-weight: 500; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--md-sys-color-outline-variant); position: sticky; top: -1px; background: var(--md-sys-color-surface); z-index: 10; padding-top: 24px; margin-top: -24px; flex-shrink: 0; }
+        .column-header small { font-size: 14px; color: var(--md-sys-color-on-surface-variant); font-weight: 400; }
         .column-content { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
         .column-header-controls { display: flex; align-items: center; gap: 8px; }
-        .view-toggle-btn { background: none; border: 1px solid var(--md-border-color); color: var(--md-text-secondary); cursor: pointer; border-radius: 4px; padding: 4px 10px; font-size: 0.9rem; font-weight: 500; }
-        .view-toggle-btn.active { background-color: var(--md-primary-color); color: white; border-color: var(--md-primary-color); }
-        .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-border-color); border-radius: 4px; font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; }
-        .source-view-textarea.error { border-color: #f44336; }
+        .view-toggle-group { display: flex; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-sys-shape-corner-full); overflow: hidden; }
+        .view-toggle-btn { background: none; border: none; color: var(--md-sys-color-primary); cursor: pointer; border-radius: 0; padding: 6px 16px; font-size: 0.9rem; font-weight: 500; border-left: 1px solid var(--md-sys-color-outline); }
+        .view-toggle-group .view-toggle-btn:first-child { border-left: none; }
+        .view-toggle-btn.active { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+        .source-view-textarea { width: 100%; height: 100%; box-sizing: border-box; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-sys-shape-corner-small); font-family: monospace; font-size: 0.9rem; padding: 1rem; resize: none; background: #fff; }
+        .source-view-textarea.error { border-color: var(--md-sys-color-error); }
         .pdf-view-iframe { width: 100%; height: 100%; border: none; }
-        .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .header-brand img { height: 32px; }
-        .header-brand .product-name { font-size: 1.5rem; font-weight: 700; color: var(--md-text-primary); }
-        .header-selectors { display: flex; align-items: center; gap: 24px; margin-left: 2rem; }
-        .header-controls { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-        .user-profile { display: flex; align-items: center; gap: 12px; }
-        .user-profile .user-name { font-weight: 500; }
-        .user-profile .avatar { height: 40px; width: 40px; border-radius: 50%; object-fit: cover; }
-        .user-profile .settings-icon { color: var(--md-text-secondary); cursor: pointer; }
-        .user-profile .settings-icon:hover { color: var(--md-text-primary); }
-        .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
-        .add-break-btn { background-color: #e8eaf6; color: var(--md-primary-color); border: 1px solid var(--md-primary-color); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
-        .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-primary-color); border-bottom: 2px dashed var(--md-primary-color); margin: 24px 0; color: var(--md-primary-color); font-weight: 500; }
-        .slide-break-feature button { background: #ffcdd2; color: #c62828; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
-        .slide-break-indicator { height: 2px; background-image: linear-gradient(to right, var(--md-primary-color) 33%, rgba(255,255,255,0) 0%); background-position: bottom; background-size: 3px 1px; background-repeat: repeat-x; margin: 24px 0; }
-        .drag-handle { cursor: grab; }
+        .header-selectors { display: flex; align-items: center; gap: 16px; }
+        .header-controls { display: flex; align-items: center; }
         .selector-group { position: relative; }
-        .selector-group label { position: absolute; top: -10px; left: 10px; font-size: 12px; background-color: var(--md-bg-card); padding: 0 4px; color: var(--md-primary-color); }
-        .selector-group select { font-size: 16px; padding: 16px 12px 8px 12px; border: 1px solid var(--md-border-color); border-radius: 4px; min-width: 280px; background-color: transparent; }
-        .version-tag { font-family: monospace; font-size: 12px; color: var(--md-text-secondary); }
-        .save-button { background-color: var(--md-primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; }
-        .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-text-secondary); }
-        .block-group { border: 2px solid var(--md-border-color); border-radius: 8px; margin-bottom: 24px; }
-        .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-text-secondary); background-color: #fafafa; padding: 12px 24px; border-bottom: 2px solid var(--md-border-color); border-radius: 8px 8px 0 0; }
+        .selector-group label { position: absolute; top: -8px; left: 10px; font-size: 12px; background-color: var(--md-sys-color-surface); padding: 0 4px; color: var(--md-sys-color-primary); }
+        .selector-group select { font-size: 16px; padding: 14px 12px; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-sys-shape-corner-small); min-width: 280px; background-color: transparent; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%235c5d72'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px; }
+        .selector-group select:focus { outline: 2px solid var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); }
+        .save-button { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border: none; padding: 10px 24px; border-radius: var(--md-sys-shape-corner-full); font-size: 14px; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1px; }
+        .srb-column-header { display: flex; justify-content: space-between; align-items: center; flex-grow: 1; }
+        .add-break-btn { background-color: transparent; color: var(--md-sys-color-primary); border: 1px solid var(--md-sys-color-outline); padding: 8px 16px; border-radius: var(--md-sys-shape-corner-full); font-size: 12px; font-weight: 500; cursor: pointer; }
+        .slide-break-feature { display: flex; align-items: center; gap: 8px; padding: 8px; border-top: 2px dashed var(--md-sys-color-secondary); border-bottom: 2px dashed var(--md-sys-color-secondary); margin: 24px 0; color: var(--md-sys-color-secondary); font-weight: 500; }
+        .slide-break-feature button { background: var(--md-sys-color-error); color: var(--md-sys-color-on-primary); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
+        .slide-break-indicator { height: 2px; background-image: linear-gradient(to right, var(--md-sys-color-secondary) 33%, rgba(255,255,255,0) 0%); background-position: bottom; background-size: 3px 1px; background-repeat: repeat-x; margin: 24px 0; }
+        .drag-handle { cursor: grab; padding: 0 8px; }
+        .section-header { font-size: 20px; font-weight: 500; margin: 40px 0 16px 0; color: var(--md-sys-color-on-surface-variant); }
+        .block-group { border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); margin-bottom: 24px; background-color: var(--md-sys-color-surface-container); overflow: hidden; }
+        .block-group-header { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--md-sys-color-on-surface-variant); padding: 12px 24px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
         .block-group-content { padding: 8px 24px 24px 24px; }
-        .feature-card { background-color: var(--md-bg-card); border-radius: 4px; margin-bottom: 20px; box-shadow: var(--md-elevation-1); }
-        .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
+        .feature-card { background-color: var(--md-sys-color-surface-container); border-radius: var(--md-sys-shape-corner-medium); margin-bottom: 20px; border: 1px solid var(--md-sys-color-outline-variant); box-shadow: none; }
+        .feature-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
         .feature-header h3 { margin: 0; font-size: 18px; font-weight: 500; flex-grow: 1; }
-        .feature-header .feature-type-badge { font-size: 12px; color: var(--md-primary-color); background-color: #e8eaf6; padding: 4px 8px; border-radius: 12px; font-family: monospace; }
+        .feature-header .feature-type-badge { font-size: 12px; color: var(--md-sys-color-on-primary-container); background-color: var(--md-sys-color-primary-container); padding: 4px 10px; border-radius: var(--md-sys-shape-corner-full); font-family: monospace; }
         .feature-content { padding: 24px; }
         .form-field { margin-bottom: 20px; }
-        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-text-secondary); }
-        .form-field input[type="text"], textarea, select { width: 100%; font-size: 14px; padding: 10px; border: 1px solid var(--md-border-color); border-radius: 4px; box-sizing: border-box; }
-        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-text-secondary); width: 100%; }
-        .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: 4px; transition: border-color 0.2s, background-color 0.2s; cursor: text; }
+        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--md-sys-color-on-surface-variant); }
+        .form-field input[type="text"], textarea, select { width: 100%; font-size: 14px; padding: 16px; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-sys-shape-corner-small); box-sizing: border-box; background-color: #fff; }
+        .form-field input[type="text"]:focus, textarea:focus, select:focus { outline: none; border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 1px var(--md-sys-color-primary); }
+        .loader { text-align: center; padding: 40px; font-size: 18px; color: var(--md-sys-color-on-surface-variant); width: 100%; }
+        .editable-content { min-height: 40px; border: 2px dashed transparent; padding: 10px; margin: -12px; border-radius: var(--md-sys-shape-corner-small); transition: border-color 0.2s, background-color 0.2s; cursor: text; }
         .editable-content:hover { border-color: #90caf9; background-color: #f5faff; }
-        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: 4px; background-color: #f0f0f0; color: #666; border: 1px solid #e0e0e0; }
-        .static-header-card { display: flex; align-items: center; gap: 16px; padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-text-secondary); border-bottom: 2px solid var(--md-border-color); margin-bottom: 20px; }
+        .read-only-content { min-height: 40px; padding: 12px; margin: 0; border-radius: var(--md-sys-shape-corner-small); background-color: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant); }
+        .static-header-card { display: flex; align-items: center; gap: 16px; padding: 12px 0px; font-size: 18px; font-weight: 700; color: var(--md-sys-color-on-surface-variant); border-bottom: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 20px; }
         .static-header-card select { flex: 0 0 90px; }
         .static-header-card input { flex: 1 1 auto; }
-        .qti-interaction { border-left: 4px solid var(--md-primary-color); padding-left: 16px; margin-top: 16px; }
+        .qti-interaction { border-left: 4px solid var(--md-sys-color-primary); padding-left: 16px; margin-top: 16px; }
         .qti-answer { border-left: 4px solid magenta; padding-left: 16px; }
-        .graphic-placeholder { border: 2px dashed var(--md-border-color); padding: 16px; text-align: center; color: var(--md-text-secondary); border-radius: 4px; }
+        .graphic-placeholder { border: 2px dashed var(--md-sys-color-outline-variant); padding: 16px; text-align: center; color: var(--md-sys-color-on-surface-variant); border-radius: var(--md-sys-shape-corner-small); }
         .answer-header { display: flex; justify-content: space-between; align-items: center; }
         .sample-answer-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-border-color); }
-        th { font-weight: 500; color: var(--md-text-secondary); }
-        .structured-list-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+        th { font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+        .structured-list-item { border: 1px solid var(--md-sys-color-outline-variant); padding: 16px; margin-bottom: 16px; border-radius: var(--md-sys-shape-corner-medium); }
     </style>
 </head>
 <body>
     <div class="editor-wrapper">
         <div class="editor-header">
-            <a href="https://clay3.netlify.app/#app" class="header-brand">
-                <img src="images/clay-logo.png" alt="Clay Logo">
-                <span class="product-name">Atomic Editor</span>
-            </a>
             <div class="header-selectors">
-                <div class="selector-group"><label for="course-selector">Course</label><select id="course-selector"></select></div>
-                <div class="selector-group"><label for="lesson-selector">Lesson</label><select id="lesson-selector"></select></div>
+                <div class="selector-group">
+                    <label for="course-selector">Course</label>
+                    <select id="course-selector"></select>
+                </div>
+                <div class="selector-group">
+                    <label for="lesson-selector">Lesson</label>
+                    <select id="lesson-selector"></select>
+                </div>
             </div>
             <div class="header-controls">
-                <span class="version-tag">v. rc1.beta.0.60</span>
                 <button id="save-button" class="save-button">Save Changes</button>
-                <div class="user-profile">
-                    <span class="user-name">K. Allard</span>
-                    <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <img src="images/avatar.png" alt="User Avatar" class="avatar">
-                </div>
             </div>
         </div>
         <main id="editor-main-content">
@@ -377,22 +389,22 @@
                         <div class="editor-column" data-source="srb">
                             <div class="column-header">
                                 <div class="srb-column-header"><span>Student View <small>(SRB)</small></span><button class="add-break-btn">Add Slide Break</button></div>
-                                <div class="column-header-controls">
+                                <div class="column-header-controls"><div class="view-toggle-group">
                                     <button class="view-toggle-btn ${srbViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
-                                    <button class="view-toggle-btn ${srbViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${srbViewMode === 'source' ? 'active' : ''}" data-view="source">Source</button>
                                     <button class="view-toggle-btn ${srbViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
-                                </div>
+                                </div></div>
                             </div>
                             <div class="column-content">${renderColumnContent('srb')}</div>
                         </div>
                         <div class="editor-column" data-source="tig">
                             <div class="column-header">
                                 <span>Teacher View <small>(TIG)</small></span>
-                                <div class="column-header-controls">
+                                <div class="column-header-controls"><div class="view-toggle-group">
                                     <button class="view-toggle-btn ${tigViewMode === 'editor' ? 'active' : ''}" data-view="editor">Editor</button>
-                                    <button class="view-toggle-btn ${tigViewMode === 'source' ? 'active' : ''}" data-view="source">&lt;&gt;</button>
+                                    <button class="view-toggle-btn ${tigViewMode === 'source' ? 'active' : ''}" data-view="source">Source</button>
                                     <button class="view-toggle-btn ${tigViewMode === 'pdf' ? 'active' : ''}" data-view="pdf">PDF</button>
-                                </div>
+                                </div></div>
                             </div>
                             <div class="column-content">${renderColumnContent('tig')}</div>
                         </div>`;
